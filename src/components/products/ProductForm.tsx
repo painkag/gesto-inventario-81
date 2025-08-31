@@ -41,7 +41,6 @@ export function ProductForm({ product, children }: ProductFormProps) {
     resolver: zodResolver(productSchema),
     defaultValues: {
       name: "",
-      code: "",
       description: "",
       category: "",
       brand: "",
@@ -57,7 +56,6 @@ export function ProductForm({ product, children }: ProductFormProps) {
     if (product) {
       form.reset({
         name: product.name,
-        code: product.code,
         description: product.description || "",
         category: product.category || "",
         brand: product.brand || "",
@@ -70,7 +68,7 @@ export function ProductForm({ product, children }: ProductFormProps) {
     }
   }, [product, form]);
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: ProductFormData) => {
     try {
       if (product) {
         await updateProduct.mutateAsync({ id: product.id, ...data });
@@ -110,35 +108,31 @@ export function ProductForm({ product, children }: ProductFormProps) {
         
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nome *</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Nome do produto" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="code"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Código *</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Código do produto" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nome *</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Nome do produto" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            {product && (
+              <FormItem>
+                <FormLabel>Código</FormLabel>
+                <FormControl>
+                  <Input value={product.code} disabled className="bg-muted" />
+                </FormControl>
+                <div className="text-sm text-muted-foreground">
+                  Código gerado automaticamente
+                </div>
+              </FormItem>
+            )}
 
             <FormField
               control={form.control}

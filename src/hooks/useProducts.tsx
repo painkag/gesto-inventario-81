@@ -31,12 +31,17 @@ export function useProducts() {
   });
 
   const createProduct = useMutation({
-    mutationFn: async (product: Omit<ProductInsert, "company_id">) => {
+    mutationFn: async (product: Omit<ProductInsert, "company_id" | "code">) => {
       if (!company?.id) throw new Error("Company not found");
+
+      // Gerar código único baseado no timestamp e um número aleatório
+      const timestamp = Date.now().toString().slice(-6);
+      const random = Math.floor(Math.random() * 100).toString().padStart(2, '0');
+      const code = `PRD${timestamp}${random}`;
 
       const { data, error } = await supabase
         .from("products")
-        .insert({ ...product, company_id: company.id })
+        .insert({ ...product, code, company_id: company.id })
         .select()
         .single();
 
@@ -48,6 +53,7 @@ export function useProducts() {
       toast({
         title: "Produto criado",
         description: "O produto foi criado com sucesso.",
+        variant: "success",
       });
     },
     onError: (error: any) => {
@@ -76,6 +82,7 @@ export function useProducts() {
       toast({
         title: "Produto atualizado",
         description: "O produto foi atualizado com sucesso.",
+        variant: "success",
       });
     },
     onError: (error: any) => {
@@ -101,6 +108,7 @@ export function useProducts() {
       toast({
         title: "Produto excluído",
         description: "O produto foi excluído com sucesso.",
+        variant: "success",
       });
     },
     onError: (error: any) => {
