@@ -14,7 +14,142 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      audit_logs: {
+        Row: {
+          action: string
+          company_id: string
+          created_at: string
+          entity: string | null
+          entity_id: string | null
+          id: string
+          ip: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          company_id: string
+          created_at?: string
+          entity?: string | null
+          entity_id?: string | null
+          id?: string
+          ip?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          company_id?: string
+          created_at?: string
+          entity?: string | null
+          entity_id?: string | null
+          id?: string
+          ip?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      companies: {
+        Row: {
+          ai_enabled: boolean | null
+          city: string | null
+          consent_ip: string | null
+          consent_opt_in: boolean | null
+          consent_timestamp: string | null
+          consent_version: string | null
+          created_at: string
+          document: string | null
+          fiscal_email: string | null
+          id: string
+          is_blocked: boolean | null
+          name: string
+          phone: string | null
+          plan: string
+          state: string | null
+          trial_ends_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          ai_enabled?: boolean | null
+          city?: string | null
+          consent_ip?: string | null
+          consent_opt_in?: boolean | null
+          consent_timestamp?: string | null
+          consent_version?: string | null
+          created_at?: string
+          document?: string | null
+          fiscal_email?: string | null
+          id?: string
+          is_blocked?: boolean | null
+          name: string
+          phone?: string | null
+          plan?: string
+          state?: string | null
+          trial_ends_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          ai_enabled?: boolean | null
+          city?: string | null
+          consent_ip?: string | null
+          consent_opt_in?: boolean | null
+          consent_timestamp?: string | null
+          consent_version?: string | null
+          created_at?: string
+          document?: string | null
+          fiscal_email?: string | null
+          id?: string
+          is_blocked?: boolean | null
+          name?: string
+          phone?: string | null
+          plan?: string
+          state?: string | null
+          trial_ends_at?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      memberships: {
+        Row: {
+          company_id: string
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["user_role"]
+          user_id: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          user_id: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "memberships_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +158,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      user_role: "OWNER" | "STAFF"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +285,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      user_role: ["OWNER", "STAFF"],
+    },
   },
 } as const
