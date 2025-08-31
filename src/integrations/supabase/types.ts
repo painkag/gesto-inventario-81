@@ -118,6 +118,35 @@ export type Database = {
         }
         Relationships: []
       }
+      company_counters: {
+        Row: {
+          company_id: string
+          purchase_seq: number
+          sale_seq: number
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          purchase_seq?: number
+          sale_seq?: number
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          purchase_seq?: number
+          sale_seq?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_counters_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: true
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       inventory_batches: {
         Row: {
           batch_number: string | null
@@ -156,6 +185,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_batches_product_company"
+            columns: ["product_id", "company_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id", "company_id"]
+          },
           {
             foreignKeyName: "inventory_batches_company_id_fkey"
             columns: ["company_id"]
@@ -299,6 +335,20 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "fk_purchase_items_product_company"
+            columns: ["product_id", "company_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id", "company_id"]
+          },
+          {
+            foreignKeyName: "fk_purchase_items_purchase_company"
+            columns: ["purchase_id", "company_id"]
+            isOneToOne: false
+            referencedRelation: "purchases"
+            referencedColumns: ["id", "company_id"]
+          },
+          {
             foreignKeyName: "purchase_items_company_id_fkey"
             columns: ["company_id"]
             isOneToOne: false
@@ -403,6 +453,27 @@ export type Database = {
           unit_price?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_sale_items_batch_company"
+            columns: ["batch_id", "company_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_batches"
+            referencedColumns: ["id", "company_id"]
+          },
+          {
+            foreignKeyName: "fk_sale_items_product_company"
+            columns: ["product_id", "company_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id", "company_id"]
+          },
+          {
+            foreignKeyName: "fk_sale_items_sale_company"
+            columns: ["sale_id", "company_id"]
+            isOneToOne: false
+            referencedRelation: "sales"
+            referencedColumns: ["id", "company_id"]
+          },
           {
             foreignKeyName: "sale_items_batch_id_fkey"
             columns: ["batch_id"]
@@ -540,6 +611,20 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "fk_movements_batch_company"
+            columns: ["batch_id", "company_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_batches"
+            referencedColumns: ["id", "company_id"]
+          },
+          {
+            foreignKeyName: "fk_movements_product_company"
+            columns: ["product_id", "company_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id", "company_id"]
+          },
+          {
             foreignKeyName: "stock_movements_batch_id_fkey"
             columns: ["batch_id"]
             isOneToOne: false
@@ -611,17 +696,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      generate_purchase_number: {
-        Args: { comp_id: string }
-        Returns: string
-      }
-      generate_sale_number: {
-        Args: { comp_id: string }
-        Returns: string
-      }
       get_product_stock: {
         Args: { product_uuid: string }
         Returns: number
+      }
+      next_purchase_number: {
+        Args: { comp_id: string }
+        Returns: string
+      }
+      next_sale_number: {
+        Args: { comp_id: string }
+        Returns: string
       }
     }
     Enums: {
