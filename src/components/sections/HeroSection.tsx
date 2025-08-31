@@ -1,9 +1,13 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Play, CheckCircle } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { ArrowRight, Play, CheckCircle, PlayCircle, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import heroImage from "@/assets/hero-dashboard.jpg";
 
 export const HeroSection = () => {
+  const [isVideoOpen, setIsVideoOpen] = useState(false);
+
   return (
     <section className="pt-24 pb-16 md:pt-32 md:pb-24 bg-gradient-hero">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -49,10 +53,39 @@ export const HeroSection = () => {
                   <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
                 </Link>
               </Button>
-              <Button variant="outline" size="lg" className="group">
-                <Play className="h-5 w-5 mr-2" />
-                Ver Demonstração
-              </Button>
+              <Dialog open={isVideoOpen} onOpenChange={setIsVideoOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="lg" className="group">
+                    <Play className="h-5 w-5 mr-2" />
+                    Ver Demonstração
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[800px] shadow-apple-lg">
+                  <DialogHeader>
+                    <DialogTitle>Demonstração do Sistema</DialogTitle>
+                    <DialogDescription>
+                      Veja como o Estoque Manager pode revolucionar a gestão do seu negócio
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="aspect-video bg-gradient-hero rounded-lg flex items-center justify-center">
+                    <div className="text-center space-y-4">
+                      <PlayCircle className="h-16 w-16 text-primary mx-auto" />
+                      <div className="space-y-2">
+                        <h3 className="text-xl font-semibold">Vídeo demonstrativo</h3>
+                        <p className="text-muted-foreground">
+                          Em breve: tour completo pelas funcionalidades
+                        </p>
+                      </div>
+                      <Button variant="hero" size="lg" asChild>
+                        <Link to="/register">
+                          Começar Teste Grátis
+                          <ArrowRight className="h-4 w-4 ml-2" />
+                        </Link>
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
 
             {/* Trial Info */}
