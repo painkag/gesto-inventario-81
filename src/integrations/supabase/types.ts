@@ -697,7 +697,9 @@ export type Database = {
     }
     Functions: {
       get_product_stock: {
-        Args: { product_uuid: string }
+        Args:
+          | { comp_id: string; product_uuid: string }
+          | { product_uuid: string }
         Returns: number
       }
       next_purchase_number: {
