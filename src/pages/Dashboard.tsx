@@ -1,3 +1,5 @@
+import React from "react";
+import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
@@ -76,32 +78,8 @@ const recentSales = [
 
 const Dashboard = () => {
   return (
-    <div className="min-h-screen bg-gradient-surface">
-      {/* Header */}
-      <div className="bg-background border-b border-border">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
-            <div>
-              <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-              <p className="text-muted-foreground">
-                Visão geral do seu negócio em tempo real
-              </p>
-            </div>
-            <div className="flex space-x-3">
-              <Button variant="outline">
-                <Calendar className="h-4 w-4 mr-2" />
-                Hoje
-              </Button>
-              <Button variant="hero">
-                <BarChart3 className="h-4 w-4 mr-2" />
-                Relatórios
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <DashboardLayout title="Dashboard">
+      <div className="space-y-6">
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {stats.map((stat, index) => {
@@ -238,7 +216,7 @@ const Dashboard = () => {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </DashboardLayout>
   );
 };
 
