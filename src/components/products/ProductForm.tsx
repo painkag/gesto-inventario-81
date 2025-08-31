@@ -45,9 +45,10 @@ export function ProductForm({ product, children }: ProductFormProps) {
       category: "",
       brand: "",
       unit: "UN",
-      cost_price: 0,
-      selling_price: 0,
-      min_stock: 0,
+      short_code: undefined,
+      cost_price: undefined,
+      selling_price: undefined,
+      min_stock: undefined,
       is_active: true,
     },
   });
@@ -60,9 +61,10 @@ export function ProductForm({ product, children }: ProductFormProps) {
         category: product.category || "",
         brand: product.brand || "",
         unit: product.unit,
-        cost_price: Number(product.cost_price) || 0,
-        selling_price: Number(product.selling_price) || 0,
-        min_stock: Number(product.min_stock) || 0,
+        short_code: product.short_code || undefined,
+        cost_price: Number(product.cost_price) || undefined,
+        selling_price: Number(product.selling_price) || undefined,
+        min_stock: Number(product.min_stock) || undefined,
         is_active: product.is_active ?? true,
       });
     }
@@ -152,7 +154,34 @@ export function ProductForm({ product, children }: ProductFormProps) {
               )}
             />
 
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-4 gap-4">
+              <FormField
+                control={form.control}
+                name="short_code"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Código Curto</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="number" 
+                        min="1" 
+                        max="999"
+                        placeholder="40"
+                        value={field.value || ""}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          field.onChange(value ? parseInt(value) : undefined);
+                        }}
+                      />
+                    </FormControl>
+                    <div className="text-xs text-muted-foreground">
+                      1-3 dígitos
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
               <FormField
                 control={form.control}
                 name="category"
@@ -209,8 +238,11 @@ export function ProductForm({ product, children }: ProductFormProps) {
                         step="0.01" 
                         min="0"
                         placeholder="0,00"
-                        {...field}
-                        onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                        value={field.value || ""}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          field.onChange(value ? parseFloat(value) : undefined);
+                        }}
                       />
                     </FormControl>
                     <FormMessage />
@@ -230,8 +262,11 @@ export function ProductForm({ product, children }: ProductFormProps) {
                         step="0.01" 
                         min="0"
                         placeholder="0,00"
-                        {...field}
-                        onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                        value={field.value || ""}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          field.onChange(value ? parseFloat(value) : undefined);
+                        }}
                       />
                     </FormControl>
                     <FormMessage />
@@ -250,8 +285,11 @@ export function ProductForm({ product, children }: ProductFormProps) {
                         type="number" 
                         min="0"
                         placeholder="0"
-                        {...field}
-                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                        value={field.value || ""}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          field.onChange(value ? parseInt(value) : undefined);
+                        }}
                       />
                     </FormControl>
                     <FormMessage />

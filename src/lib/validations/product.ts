@@ -6,6 +6,7 @@ export const productSchema = z.object({
   category: z.string().max(100, "Categoria muito longa").optional(),
   brand: z.string().max(100, "Marca muito longa").optional(),
   unit: z.string().min(1, "Unidade é obrigatória").max(10, "Unidade muito longa"),
+  short_code: z.number().int().min(1).max(999).optional(),
   cost_price: z.number().min(0, "Preço de custo não pode ser negativo").optional(),
   selling_price: z.number().min(0, "Preço de venda não pode ser negativo").optional(),
   min_stock: z.number().min(0, "Estoque mínimo não pode ser negativo").optional(),

@@ -70,6 +70,7 @@ export function ProductTable({ products }: ProductTableProps) {
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead>Código Curto</TableHead>
             <TableHead>Código</TableHead>
             <TableHead>Nome</TableHead>
             <TableHead>Categoria</TableHead>
@@ -84,6 +85,15 @@ export function ProductTable({ products }: ProductTableProps) {
         <TableBody>
           {products.map((product) => (
             <TableRow key={product.id}>
+              <TableCell>
+                {product.short_code ? (
+                  <Badge variant="default" className="bg-primary/10 text-primary font-bold">
+                    {product.short_code}
+                  </Badge>
+                ) : (
+                  <span className="text-muted-foreground">-</span>
+                )}
+              </TableCell>
               <TableCell className="font-mono text-sm">
                 {product.code}
               </TableCell>

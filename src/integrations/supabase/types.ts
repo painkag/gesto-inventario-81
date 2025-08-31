@@ -254,6 +254,7 @@ export type Database = {
           min_stock: number | null
           name: string
           selling_price: number | null
+          short_code: number | null
           unit: string
           updated_at: string
         }
@@ -270,6 +271,7 @@ export type Database = {
           min_stock?: number | null
           name: string
           selling_price?: number | null
+          short_code?: number | null
           unit?: string
           updated_at?: string
         }
@@ -286,6 +288,7 @@ export type Database = {
           min_stock?: number | null
           name?: string
           selling_price?: number | null
+          short_code?: number | null
           unit?: string
           updated_at?: string
         }
