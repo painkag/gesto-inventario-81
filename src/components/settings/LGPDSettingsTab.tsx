@@ -90,14 +90,11 @@ export function LGPDSettingsTab() {
                   <p className="font-medium">Data do Consentimento</p>
                   <p className="text-sm text-muted-foreground flex items-center gap-1">
                     <Clock className="h-3 w-3" />
-                    {company.consent_timestamp ? 
-                      new Date(company.consent_timestamp).toLocaleDateString('pt-BR') :
-                      "Não registrado"
-                    }
+                    Não registrado (será implementado)
                   </p>
                 </div>
                 <Badge variant="outline">
-                  Versão {company.consent_version || "1.0"}
+                  Versão 1.0
                 </Badge>
               </div>
             </div>
