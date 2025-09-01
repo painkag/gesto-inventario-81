@@ -65,20 +65,13 @@ export function useSales() {
 
   const createSale = useMutation({
     mutationFn: async (saleData: CreateSaleData) => {
-      console.log("Iniciando criação de venda:", saleData);
-      
       if (!company?.id) throw new Error("Company not found");
 
       // Obter próximo número da venda
-      console.log("Obtendo próximo número da venda...");
       const { data: nextNumberData, error: numberError } = await supabase
         .rpc("next_sale_number", { comp_id: company.id });
 
-      if (numberError) {
-        console.error("Erro ao obter número da venda:", numberError);
-        throw numberError;
-      }
-      console.log("Próximo número da venda:", nextNumberData);
+      if (numberError) throw numberError;
 
       const total = saleData.items.reduce(
         (sum, item) => sum + item.quantity * item.unit_price,
@@ -86,10 +79,8 @@ export function useSales() {
       );
 
       const finalTotal = total - (saleData.discount || 0);
-      console.log("Total calculado:", { total, discount: saleData.discount, finalTotal });
 
       // Criar a venda
-      console.log("Criando venda...");
       const { data: sale, error: saleError } = await supabase
         .from("sales")
         .insert({
@@ -104,14 +95,9 @@ export function useSales() {
         .select()
         .single();
 
-      if (saleError) {
-        console.error("Erro ao criar venda:", saleError);
-        throw saleError;
-      }
-      console.log("Venda criada:", sale);
+      if (saleError) throw saleError;
 
       // Criar os itens da venda
-      console.log("Criando itens da venda...");
       const saleItems = saleData.items.map((item) => ({
         company_id: company.id,
         sale_id: sale.id,
@@ -125,14 +111,9 @@ export function useSales() {
         .from("sale_items")
         .insert(saleItems);
 
-      if (itemsError) {
-        console.error("Erro ao criar itens da venda:", itemsError);
-        throw itemsError;
-      }
-      console.log("Itens da venda criados com sucesso");
+      if (itemsError) throw itemsError;
 
       // Registrar movimentações de estoque e atualizar batches
-      console.log("Registrando movimentações de estoque...");
       for (const item of saleData.items) {
         // 1. Registrar movimento de estoque
         const { error: movementError } = await supabase
@@ -147,10 +128,7 @@ export function useSales() {
             reason: `Venda #${nextNumberData}`,
           });
 
-        if (movementError) {
-          console.error("Erro ao registrar movimento de estoque:", movementError);
-          throw movementError;
-        }
+        if (movementError) throw movementError;
 
         // 2. Atualizar inventory_batches (FIFO)
         let remainingQuantity = item.quantity;
@@ -163,10 +141,7 @@ export function useSales() {
           .gt("quantity", 0)
           .order("created_at", { ascending: true });
 
-        if (batchesError) {
-          console.error("Erro ao buscar lotes:", batchesError);
-          throw batchesError;
-        }
+        if (batchesError) throw batchesError;
 
         for (const batch of existingBatches || []) {
           if (remainingQuantity <= 0) break;
@@ -179,10 +154,7 @@ export function useSales() {
             .update({ quantity: newQuantity })
             .eq("id", batch.id);
 
-          if (updateError) {
-            console.error("Erro ao atualizar lote:", updateError);
-            throw updateError;
-          }
+          if (updateError) throw updateError;
 
           remainingQuantity -= quantityToDeduct;
         }
@@ -192,7 +164,6 @@ export function useSales() {
           throw new Error(`Estoque insuficiente para o produto. Faltam ${remainingQuantity} unidades.`);
         }
       }
-      console.log("Movimentações de estoque registradas");
 
       return sale;
     },
