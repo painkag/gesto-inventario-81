@@ -45,7 +45,7 @@ export function useSales() {
         .from("sales")
         .select(`
           *,
-          sale_items (
+          sale_items!sale_items_sale_id_fkey (
             *,
             products!sale_items_product_id_fkey (
               id,
@@ -57,7 +57,10 @@ export function useSales() {
         .eq("company_id", company.id)
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Sales query error:", error);
+        throw error;
+      }
       return data;
     },
     enabled: !!company?.id,
@@ -193,7 +196,7 @@ export function useSales() {
         .from("sales")
         .select(`
           *,
-          sale_items (
+          sale_items!sale_items_sale_id_fkey (
             product_id,
             quantity
           )

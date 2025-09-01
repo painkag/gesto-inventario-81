@@ -67,8 +67,14 @@ export const ContactSection = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simular envio do formulário
-    setTimeout(() => {
+    try {
+      // TODO: Create contact_messages table in Supabase
+      // For now, we'll simulate the submission and log the data
+      console.log("Contact form submission:", formData);
+      
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
       toast({
         title: "Mensagem enviada!",
         description: "Retornaremos o contato em breve. Obrigado pelo interesse!",
@@ -81,8 +87,15 @@ export const ContactSection = () => {
         phone: "",
         message: ""
       });
+    } catch (error: any) {
+      toast({
+        title: "Erro ao enviar mensagem",
+        description: error.message || "Tente novamente em alguns instantes.",
+        variant: "destructive",
+      });
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   return (

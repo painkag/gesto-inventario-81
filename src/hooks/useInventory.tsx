@@ -246,22 +246,60 @@ export function useInventory() {
           throw new Error(`Estoque insuficiente. Faltam ${remainingQuantity} unidades.`);
         }
       }
+
+      return { productId, quantity, type };
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["inventory", company?.id] });
-      queryClient.invalidateQueries({ queryKey: ["inventory-batches", company?.id] });
-      queryClient.invalidateQueries({ queryKey: ["stock-movements", company?.id] });
-      toast({
-        title: "Estoque ajustado",
-        description: "O ajuste de estoque foi realizado com sucesso.",
-        variant: "success",
-      });
+    onMutate: async ({ productId, quantity }) => {
+      // Optimistic update - cancel ongoing queries
+      await queryClient.cancelQueries({ queryKey: ["inventory", company?.id] });
+      
+      // Get current data
+      const previousData = queryClient.getQueryData<ProductWithStock[]>(["inventory", company?.id]);
+      
+      // Optimistically update inventory
+      if (previousData) {
+        const updatedData = previousData.map(product => 
+          product.id === productId 
+            ? { ...product, current_stock: Math.max(0, product.current_stock + quantity) }
+            : product
+        );
+        queryClient.setQueryData(["inventory", company?.id], updatedData);
+      }
+      
+      return { previousData };
     },
-    onError: (error: any) => {
+    onError: (error: any, variables, context) => {
+      // Revert optimistic update on error
+      if (context?.previousData) {
+        queryClient.setQueryData(["inventory", company?.id], context.previousData);
+      }
+      
       toast({
         title: "Erro ao ajustar estoque",
         description: error.message || "Ocorreu um erro ao ajustar o estoque.",
         variant: "destructive",
+      });
+    },
+    onSuccess: (data) => {
+      // More targeted invalidation - only refresh if needed
+      queryClient.invalidateQueries({ 
+        queryKey: ["inventory-batches", company?.id],
+        refetchType: "none" // Don't refetch immediately
+      });
+      queryClient.invalidateQueries({ 
+        queryKey: ["stock-movements", company?.id],
+        refetchType: "none" 
+      });
+      
+      // Refetch inventory data to ensure accuracy
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ["inventory", company?.id] });
+      }, 100);
+      
+      toast({
+        title: "Estoque ajustado",
+        description: "O ajuste de estoque foi realizado com sucesso.",
+        variant: "success",
       });
     },
   });

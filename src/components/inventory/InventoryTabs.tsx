@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { InventoryTable } from "./InventoryTable";
 import { BatchesTable } from "./BatchesTable";
 import { StockMovementsTable } from "./StockMovementsTable";
@@ -16,18 +16,23 @@ export function InventoryTabs() {
   const [selectedProduct, setSelectedProduct] = useState<ProductWithStock | null>(null);
   const [adjustmentDialogOpen, setAdjustmentDialogOpen] = useState(false);
 
-  const filteredInventory = inventory.filter((product) =>
-    product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (product.short_code && product.short_code.toString().includes(searchTerm))
-  );
+  const filteredInventory = useMemo(() => {
+    if (!searchTerm.trim()) return inventory;
+    
+    const search = searchTerm.toLowerCase();
+    return inventory.filter((product) =>
+      product.name.toLowerCase().includes(search) ||
+      product.code.toLowerCase().includes(search) ||
+      (product.short_code && product.short_code.toString().includes(search))
+    );
+  }, [inventory, searchTerm]);
 
-  const stats = {
+  const stats = useMemo(() => ({
     totalProducts: inventory.length,
     lowStock: inventory.filter(p => p.min_stock && p.current_stock <= p.min_stock).length,
     outOfStock: inventory.filter(p => p.current_stock === 0).length,
     totalValue: inventory.reduce((acc, p) => acc + ((p.cost_price || 0) * p.current_stock), 0),
-  };
+  }), [inventory]);
 
   const handleAdjustStock = (product: ProductWithStock) => {
     setSelectedProduct(product);
