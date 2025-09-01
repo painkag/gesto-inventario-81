@@ -200,6 +200,10 @@ All colors MUST be HSL. Semantic tokens for consistency.
     box-shadow: var(--shadow-lg);
   }
   
+  .shadow-apple-lg {
+    box-shadow: var(--shadow-xl);
+  }
+  
   /* Animation utilities */
   .animate-fade-in {
     animation: fadeIn var(--animation-duration) var(--animation-curve);

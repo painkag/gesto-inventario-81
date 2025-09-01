@@ -1,6 +1,7 @@
 import { ReactNode, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useBilling } from '@/hooks/useBilling';
+import { useAuth } from '@/hooks/useAuth';
 import { Loader2, CreditCard, AlertTriangle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,20 +12,44 @@ interface SystemBlockedGuardProps {
 }
 
 const SystemBlockedGuard = ({ children }: SystemBlockedGuardProps) => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
+  // Rotas que podem ser acessadas sempre (sem verificação de billing)
+  const publicRoutes = [
+    '/',
+    '/login', 
+    '/register', 
+    '/forgot-password',
+    '/checkout-processing'
+  ];
+
+  const isDashboardRoute = location.pathname.startsWith('/dashboard');
+  const isPublicRoute = publicRoutes.includes(location.pathname);
+
+  // Se for rota pública ou usuário não logado, não verificar billing
+  if (isPublicRoute || !user) {
+    return <>{children}</>;
+  }
+
+  // Só verificar billing para rotas do dashboard com usuário logado
+  if (isDashboardRoute && user) {
+    return <DashboardGuard>{children}</DashboardGuard>;
+  }
+
+  // Para outras rotas, renderizar normalmente
+  return <>{children}</>;
+};
+
+// Componente que só roda verificação de billing quando necessário
+const DashboardGuard = ({ children }: { children: ReactNode }) => {
   const { isBlocked, isLoading, planDisplayName } = useBilling();
   const location = useLocation();
   const navigate = useNavigate();
-
-  // Rotas que podem ser acessadas mesmo com sistema bloqueado
-  const allowedWhenBlocked = [
-    '/dashboard/plano',
-    '/checkout-processing',
-    '/login',
-    '/register',
-    '/forgot-password',
-    '/'
-  ];
-
+  
+  // Rotas do dashboard que podem ser acessadas mesmo bloqueado
+  const allowedWhenBlocked = ['/dashboard/plano'];
   const isAllowedRoute = allowedWhenBlocked.some(route => 
     location.pathname === route || location.pathname.startsWith(route)
   );
