@@ -15,7 +15,8 @@ import {
   CheckCircle2,
   Headphones
 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { useBlueToast } from "@/hooks/useBlueToast";
+import { supabase } from "@/integrations/supabase/client";
 
 const contactInfo = [
   {
@@ -45,7 +46,7 @@ const contactInfo = [
 ];
 
 export const ContactSection = () => {
-  const { toast } = useToast();
+  const { showSuccess, showError } = useBlueToast();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -68,28 +69,21 @@ export const ContactSection = () => {
     setIsLoading(true);
 
     try {
-      // Por enquanto, apenas simular o envio e registrar os dados
-      // A tabela contact_messages precisa ser criada no Supabase primeiro
-      console.log("Contact form submission:", formData);
-      
-      // Simular envio de email (informações protegidas)
-      const adminEmail = atob("dmljdG9yY2FtYXJnbzk5MDNAZ21haWwuY29t");
-      const whatsappNumber = atob("MTE5OTE1NDEyOQ==");
-      
-      console.log("Dados para follow-up:", {
-        adminEmail,
-        whatsappNumber,
-        formData
+      // Call Supabase edge function to send email and WhatsApp notification
+      const { data, error } = await supabase.functions.invoke('send-contact-message', {
+        body: formData
       });
 
-      // Simular delay de API
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      if (error) {
+        throw error;
+      }
 
-      toast({
-        title: "Mensagem enviada!",
-        description: "Retornaremos o contato em breve. Obrigado pelo interesse!",
-      });
+      showSuccess(
+        "Mensagem enviada com sucesso!",
+        "Nossa equipe entrará em contato em breve. Obrigado pelo interesse!"
+      );
       
+      // Reset form
       setFormData({
         name: "",
         email: "",
@@ -97,12 +91,13 @@ export const ContactSection = () => {
         phone: "",
         message: ""
       });
+
     } catch (error: any) {
-      toast({
-        title: "Erro ao enviar mensagem",
-        description: error.message || "Tente novamente em alguns instantes.",
-        variant: "destructive",
-      });
+      console.error('Contact form error:', error);
+      showError(
+        "Erro ao enviar mensagem",
+        "Tente novamente em alguns instantes ou entre em contato diretamente."
+      );
     } finally {
       setIsLoading(false);
     }

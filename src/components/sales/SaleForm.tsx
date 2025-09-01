@@ -33,7 +33,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { useProducts } from "@/hooks/useProducts";
 import { useSales } from "@/hooks/useSales";
-import { useInventory } from "@/hooks/useInventory";
+import { useBlueToast } from "@/hooks/useBlueToast";
 
 const saleSchema = z.object({
   customer_name: z.string().optional(),
@@ -58,9 +58,7 @@ export function SaleForm() {
   const [productSearch, setProductSearch] = useState("");
   const [showProductSearch, setShowProductSearch] = useState(false);
 
-  const { products } = useProducts();
-  const { inventory } = useInventory();
-  const { createSale, isCreating } = useSales();
+  const { showSuccess, showError } = useBlueToast();
 
   const form = useForm<SaleFormData>({
     resolver: zodResolver(saleSchema),
@@ -169,33 +167,28 @@ export function SaleForm() {
 
       // Mostrar detalhes da venda após criação
       if (result) {
-        const saleDetails = {
-          saleNumber: result.sale_number,
-          customerName: data.customer_name || "Cliente não identificado",
-          items: items,
-          subtotal: subtotal,
-          discount: discount,
-          total: total,
-          date: new Date().toLocaleString("pt-BR"),
-        };
-
-        // Exibir modal com detalhes da venda
-        showSaleDetails(saleDetails);
+        showSuccess(
+          "Venda finalizada!",
+          `Venda ${result.sale_number} registrada com sucesso.`
+        );
       }
 
       // Reset form
       form.reset();
       setItems([]);
       setOpen(false);
-    } catch (error) {
+      
+      // Redirecionar para a página de vendas
+      window.location.href = '/dashboard/sales';
+    } catch (error: any) {
       console.error("Erro ao finalizar venda:", error);
+      showError(
+        "Erro ao finalizar venda",
+        error.message || "Tente novamente."
+      );
     }
   };
 
-  const showSaleDetails = (details: any) => {
-    // Mostrar toast de sucesso e fechar modal
-    window.location.href = '/dashboard/sales';
-  };
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", {
