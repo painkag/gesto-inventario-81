@@ -152,7 +152,7 @@ export function useInventory() {
         .from("stock_movements")
         .select(`
           *,
-          products!inner (name, code, unit)
+          products!stock_movements_product_id_fkey (name, code, unit)
         `)
         .eq("company_id", company.id)
         .order("created_at", { ascending: false })

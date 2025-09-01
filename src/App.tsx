@@ -17,6 +17,7 @@ import Inventory from "./pages/Inventory";
 import Sales from "./pages/Sales";
 import Purchases from "./pages/Purchases";
 import Reports from "./pages/Reports";
+import Movements from "./pages/Movements";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
@@ -71,6 +72,11 @@ const App = () => (
             <Route path="/dashboard/reports" element={
               <ProtectedRoute>
                 <Reports />
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/movements" element={
+              <ProtectedRoute>
+                <Movements />
               </ProtectedRoute>
             } />
             <Route path="/dashboard/settings" element={
