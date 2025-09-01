@@ -43,15 +43,15 @@ export function SalesTable() {
 
   const getStatusBadge = (status: string) => {
     const variants = {
-      completed: "success" as const,
-      cancelled: "destructive" as const,
-      pending: "secondary" as const,
+      COMPLETED: "success" as const,
+      CANCELLED: "destructive" as const,
+      PENDING: "secondary" as const,
     };
 
     const labels = {
-      completed: "Concluída",
-      cancelled: "Cancelada",
-      pending: "Pendente",
+      COMPLETED: "Concluída",
+      CANCELLED: "Cancelada",
+      PENDING: "Pendente",
     };
 
     return (
@@ -137,7 +137,7 @@ export function SalesTable() {
                       <Eye className="mr-2 h-4 w-4" />
                       Ver detalhes
                     </DropdownMenuItem>
-                    {sale.status === "completed" && (
+                    {sale.status === "COMPLETED" && (
                       <>
                         <DropdownMenuSeparator />
                         <AlertDialog>

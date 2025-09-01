@@ -11,11 +11,11 @@ const Sales = () => {
   const todaySales = sales.filter(sale => {
     const today = new Date();
     const saleDate = new Date(sale.created_at);
-    return saleDate.toDateString() === today.toDateString() && sale.status === 'completed';
+    return saleDate.toDateString() === today.toDateString() && sale.status === 'COMPLETED';
   });
 
   const totalToday = todaySales.reduce((sum, sale) => sum + sale.total_amount, 0);
-  const completedSales = sales.filter(sale => sale.status === 'completed');
+  const completedSales = sales.filter(sale => sale.status === 'COMPLETED');
   const totalSales = completedSales.reduce((sum, sale) => sum + sale.total_amount, 0);
 
   const formatCurrency = (value: number) => {

@@ -99,7 +99,7 @@ export function useSales() {
           total_amount: finalTotal,
           discount_amount: saleData.discount || 0,
           notes: saleData.notes || "",
-          status: "completed",
+          status: "COMPLETED",
         })
         .select()
         .single();
@@ -235,7 +235,7 @@ export function useSales() {
       // Atualizar status da venda
       const { error: updateError } = await supabase
         .from("sales")
-        .update({ status: "cancelled" })
+        .update({ status: "CANCELLED" })
         .eq("id", saleId);
 
       if (updateError) throw updateError;
