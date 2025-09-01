@@ -277,9 +277,8 @@ export const ContactSection = () => {
 
                   <Button 
                     type="submit" 
-                    variant="hero" 
                     size="lg" 
-                    className="w-full md:w-auto"
+                    className="w-full md:w-auto bg-gradient-primary hover:bg-gradient-primary/90"
                     disabled={isLoading}
                   >
                     {isLoading ? (

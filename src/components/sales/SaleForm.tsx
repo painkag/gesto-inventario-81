@@ -193,24 +193,8 @@ export function SaleForm() {
   };
 
   const showSaleDetails = (details: any) => {
-    const message = `
-Venda finalizada com sucesso!
-
-Número: #${details.saleNumber}
-Cliente: ${details.customerName}
-Data: ${details.date}
-
-Itens:
-${details.items.map((item: any) => 
-  `• ${item.product_name} - Qtd: ${item.quantity} - ${formatCurrency(item.unit_price)} = ${formatCurrency(item.quantity * item.unit_price)}`
-).join('\n')}
-
-Subtotal: ${formatCurrency(details.subtotal)}
-${details.discount > 0 ? `Desconto: ${formatCurrency(details.discount)}` : ''}
-Total: ${formatCurrency(details.total)}
-    `;
-
-    alert(message); // Temporário - pode ser substituído por um modal mais elegante
+    // Mostrar toast de sucesso e fechar modal
+    window.location.href = '/dashboard/sales';
   };
 
   const formatCurrency = (value: number) => {

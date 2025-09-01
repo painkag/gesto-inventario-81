@@ -2,6 +2,7 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useReports } from "@/hooks/useReports";
+import { MonthlyChart } from "@/components/reports/MonthlyChart";
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -15,7 +16,7 @@ import {
 import { Progress } from "@/components/ui/progress";
 
 const Reports = () => {
-  const { salesReport, lowStock, topProducts, isLoading } = useReports();
+  const { salesReport, lowStock, topProducts, monthlyAnalysis, isLoading } = useReports();
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", {
@@ -192,6 +193,11 @@ const Reports = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Análise de BI Mensal */}
+        {monthlyAnalysis?.monthlyData && monthlyAnalysis.monthlyData.length > 0 && (
+          <MonthlyChart data={monthlyAnalysis.monthlyData} />
+        )}
 
         {/* Vendas por Categoria */}
         {salesReport?.categoryRevenue && Object.keys(salesReport.categoryRevenue).length > 0 && (
