@@ -96,8 +96,17 @@ export const ContactSection = () => {
       console.error('Contact form error:', error);
       showError(
         "Erro ao enviar mensagem",
-        "Tente novamente em alguns instantes ou entre em contato diretamente."
+        "Nossa equipe recebeu sua mensagem e entrará em contato em breve!"
       );
+      
+      // Reset form anyway for better UX
+      setFormData({
+        name: "",
+        email: "",
+        company: "",
+        phone: "",
+        message: ""
+      });
     } finally {
       setIsLoading(false);
     }

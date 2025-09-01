@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import RoleProtectedRoute from "@/components/auth/RoleProtectedRoute";
+import SystemBlockedGuard from "@/components/auth/SystemBlockedGuard";
 
 import Index from "./pages/Index";
 import Login from "./pages/Login";
@@ -20,6 +21,8 @@ import Purchases from "./pages/Purchases";
 import Reports from "./pages/Reports";
 import Movements from "./pages/Movements";
 import Settings from "./pages/Settings";
+import Plans from "./pages/Plans";
+import CheckoutProcessing from "./pages/CheckoutProcessing";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -33,10 +36,11 @@ const queryClient = new QueryClient({
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
+      <SystemBlockedGuard>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
           <Routes>
             {/* Public routes */}
             <Route path="/" element={<Index />} />
@@ -87,12 +91,23 @@ const App = () => (
                 </RoleProtectedRoute>
               </ProtectedRoute>
             } />
+            <Route path="/dashboard/plano" element={
+              <ProtectedRoute>
+                <RoleProtectedRoute requiredRole="OWNER">
+                  <Plans />
+                </RoleProtectedRoute>
+              </ProtectedRoute>
+            } />
+            
+            {/* Public checkout processing */}
+            <Route path="/checkout-processing" element={<CheckoutProcessing />} />
             
             {/* Catch-all route */}
             <Route path="*" element={<NotFound />} />
           </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
+          </BrowserRouter>
+        </TooltipProvider>
+      </SystemBlockedGuard>
     </AuthProvider>
   </QueryClientProvider>
 );

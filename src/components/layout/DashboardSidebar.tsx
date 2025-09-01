@@ -9,7 +9,8 @@ import {
   FileText,
   Settings,
   ChevronDown,
-  Home
+  Home,
+  CreditCard
 } from "lucide-react";
 import {
   Sidebar,
@@ -176,7 +177,6 @@ export function DashboardSidebar() {
           </Collapsible>
         </SidebarGroup>
 
-        {/* Configurações - EM_EDIT: Só para OWNER */}
         {canAccessSettings && (
           <SidebarGroup className="mt-auto">
             <SidebarGroupContent>
@@ -186,6 +186,14 @@ export function DashboardSidebar() {
                     <NavLink to="/dashboard/settings" className={getNavCls("/dashboard/settings")}>
                       <Settings className="h-4 w-4" />
                       {!isCollapsed && <span>Configurações</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink to="/dashboard/plano" className={getNavCls("/dashboard/plano")}>
+                      <CreditCard className="h-4 w-4" />
+                      {!isCollapsed && <span>Planos</span>}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
