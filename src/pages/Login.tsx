@@ -4,12 +4,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Package, ArrowLeft, AlertCircle } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useBlueToast } from "@/hooks/useBlueToast";
 import { supabase } from "@/integrations/supabase/client";
 
 const Login = () => {
   const { showSuccess, showError } = useBlueToast();
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
@@ -98,8 +99,10 @@ const Login = () => {
           "Redirecionando para o painel..."
         );
 
-        // Forçar refresh da página para estado limpo
-        window.location.href = '/dashboard';
+        // Aguardar um pouco para mostrar o toast e então navegar
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 1000);
       }
     } catch (error: any) {
       showError(

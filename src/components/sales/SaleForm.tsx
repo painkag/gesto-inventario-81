@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useNavigate } from "react-router-dom";
 import { Plus, Minus, Search, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -59,6 +60,7 @@ export function SaleForm() {
   const [productSearch, setProductSearch] = useState("");
   const [showProductSearch, setShowProductSearch] = useState(false);
 
+  const navigate = useNavigate();
   const { showSuccess, showError } = useBlueToast();
   const { products } = useProducts();
   const { inventory } = useInventory();
@@ -182,8 +184,10 @@ export function SaleForm() {
       setItems([]);
       setOpen(false);
       
-      // Redirecionar para a página de vendas
-      window.location.href = '/dashboard/sales';
+      // Redirecionar para a página de vendas usando navegação SPA
+      setTimeout(() => {
+        navigate('/dashboard/sales');
+      }, 1500);
     } catch (error: any) {
       console.error("Erro ao finalizar venda:", error);
       showError(

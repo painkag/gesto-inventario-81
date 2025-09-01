@@ -68,7 +68,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         // Ignorar erros
       }
 
-      // Forçar refresh da página para estado limpo
+      // Forçar refresh da página para estado limpo (apenas para logout)
       window.location.href = '/';
     } catch (error) {
       console.error('Erro ao fazer logout:', error);

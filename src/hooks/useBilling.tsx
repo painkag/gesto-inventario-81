@@ -165,9 +165,9 @@ export function useCheckout() {
       return data;
     },
     onSuccess: (data) => {
-      // Redirecionar para checkout (mock)
+      // Abrir checkout em nova aba para melhor UX
       if (data.checkout_url) {
-        window.location.href = data.checkout_url;
+        window.open(data.checkout_url, '_blank');
       }
     },
     onError: (error: any) => {
