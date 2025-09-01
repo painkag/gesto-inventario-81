@@ -4,8 +4,38 @@ import { useCompany } from "./useCompany";
 import { useToast } from "./use-toast";
 import type { Database } from "@/integrations/supabase/types";
 
-type InventoryBatch = Database["public"]["Tables"]["inventory_batches"]["Row"];
-type StockMovement = Database["public"]["Tables"]["stock_movements"]["Row"];
+export interface InventoryBatchWithProduct {
+  id: string;
+  batch_number: string | null;
+  quantity: number;
+  expiry_date: string | null;
+  cost_price: number | null;
+  supplier: string | null;
+  created_at: string;
+  products: {
+    name: string;
+    code: string;
+    unit: string;
+  } | null;
+}
+
+export interface StockMovementWithProduct {
+  id: string;
+  type: string;
+  quantity: number;
+  unit_price: number | null;
+  total_price: number | null;
+  reason: string | null;
+  reference_type: string | null;
+  reference_id: string | null;
+  created_at: string;
+  created_by: string | null;
+  products: {
+    name: string;
+    code: string;
+    unit: string;
+  } | null;
+}
 
 export interface ProductWithStock {
   id: string;
@@ -101,14 +131,14 @@ export function useInventory() {
         .from("inventory_batches")
         .select(`
           *,
-          products (name, code, unit)
+          products!inner (name, code, unit)
         `)
         .eq("company_id", company.id)
         .gt("quantity", 0)
         .order("expiry_date", { ascending: true });
 
       if (error) throw error;
-      return data;
+      return data || [];
     },
     enabled: !!company?.id,
   });
@@ -122,14 +152,14 @@ export function useInventory() {
         .from("stock_movements")
         .select(`
           *,
-          products (name, code, unit)
+          products!inner (name, code, unit)
         `)
         .eq("company_id", company.id)
         .order("created_at", { ascending: false })
         .limit(100);
 
       if (error) throw error;
-      return data;
+      return data || [];
     },
     enabled: !!company?.id,
   });
