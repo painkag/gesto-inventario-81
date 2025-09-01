@@ -84,10 +84,8 @@ export function SaleForm() {
   });
 
   const addProduct = (product: any) => {
-    console.log("Função addProduct chamada com:", product);
     const existingItem = items.find((item) => item.product_id === product.id);
     const availableStock = getProductStock(product.id);
-    console.log("Item existente:", existingItem, "Estoque disponível:", availableStock);
 
     if (existingItem) {
       if (existingItem.quantity < availableStock) {
@@ -98,11 +96,9 @@ export function SaleForm() {
               : item
           )
         );
-        console.log("Quantidade aumentada para produto existente");
       }
     } else {
       if (availableStock > 0) {
-        console.log("Adicionando novo produto:", product.name);
         setItems([
           ...items,
           {
@@ -114,12 +110,8 @@ export function SaleForm() {
             available_stock: availableStock,
           },
         ]);
-        console.log("Produto adicionado com sucesso");
-      } else {
-        console.log("Produto sem estoque:", product.name);
       }
     }
-    console.log("Fechando busca de produtos");
     setShowProductSearch(false);
     setProductSearch("");
   };
@@ -227,10 +219,7 @@ export function SaleForm() {
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => {
-                    console.log("Botão adicionar produto clicado");
-                    setShowProductSearch(true);
-                  }}
+                  onClick={() => setShowProductSearch(true)}
                   className="gap-2"
                 >
                   <Plus className="h-4 w-4" />
@@ -252,14 +241,10 @@ export function SaleForm() {
                       <CommandGroup>
                         {filteredProducts.slice(0, 10).map((product) => {
                           const stock = getProductStock(product.id);
-                          console.log(`Produto ${product.name}, estoque: ${stock}`);
                           return (
                             <CommandItem
                               key={product.id}
-                              onSelect={() => {
-                                console.log("Produto selecionado:", product.name);
-                                addProduct(product);
-                              }}
+                              onSelect={() => addProduct(product)}
                               disabled={stock === 0}
                             >
                               <div className="flex-1">

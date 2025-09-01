@@ -180,7 +180,11 @@ export function useInventory() {
     }) => {
       if (!company?.id) throw new Error("Company not found");
 
-      const { error } = await supabase.from("stock_movements").insert({
+      const user = await supabase.auth.getUser();
+      if (!user.data.user) throw new Error("User not found");
+
+      // 1. Inserir movimento de estoque
+      const { error: movementError } = await supabase.from("stock_movements").insert({
         company_id: company.id,
         product_id: productId,
         quantity,
@@ -188,13 +192,64 @@ export function useInventory() {
         reason,
         unit_price: unitPrice,
         total_price: unitPrice ? unitPrice * Math.abs(quantity) : undefined,
-        created_by: (await supabase.auth.getUser()).data.user?.id,
+        created_by: user.data.user.id,
       });
 
-      if (error) throw error;
+      if (movementError) throw movementError;
+
+      // 2. Atualizar inventory_batches para manter consistência
+      if (quantity > 0) {
+        // ENTRADA: Criar novo lote
+        const { error: batchError } = await supabase.from("inventory_batches").insert({
+          company_id: company.id,
+          product_id: productId,
+          batch_number: `ADJ-${Date.now()}`,
+          quantity: Math.abs(quantity),
+          cost_price: unitPrice || null,
+          supplier: type === "IN" ? "Entrada manual" : "Ajuste de estoque",
+        });
+
+        if (batchError) throw batchError;
+      } else if (quantity < 0) {
+        // SAÍDA: Decrementar lotes existentes (FIFO)
+        let remainingQuantity = Math.abs(quantity);
+        
+        // Buscar lotes com quantidade disponível, ordenados por data (FIFO)
+        const { data: existingBatches, error: batchesError } = await supabase
+          .from("inventory_batches")
+          .select("*")
+          .eq("company_id", company.id)
+          .eq("product_id", productId)
+          .gt("quantity", 0)
+          .order("created_at", { ascending: true });
+
+        if (batchesError) throw batchesError;
+
+        for (const batch of existingBatches || []) {
+          if (remainingQuantity <= 0) break;
+
+          const quantityToDeduct = Math.min(batch.quantity, remainingQuantity);
+          const newQuantity = batch.quantity - quantityToDeduct;
+
+          const { error: updateError } = await supabase
+            .from("inventory_batches")
+            .update({ quantity: newQuantity })
+            .eq("id", batch.id);
+
+          if (updateError) throw updateError;
+
+          remainingQuantity -= quantityToDeduct;
+        }
+
+        // Se ainda sobrou quantidade a ser deduzida, significa que não há estoque suficiente
+        if (remainingQuantity > 0) {
+          throw new Error(`Estoque insuficiente. Faltam ${remainingQuantity} unidades.`);
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["inventory", company?.id] });
+      queryClient.invalidateQueries({ queryKey: ["inventory-batches", company?.id] });
       queryClient.invalidateQueries({ queryKey: ["stock-movements", company?.id] });
       toast({
         title: "Estoque ajustado",
