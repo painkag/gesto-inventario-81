@@ -33,6 +33,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { useProducts } from "@/hooks/useProducts";
 import { useSales } from "@/hooks/useSales";
+import { useInventory } from "@/hooks/useInventory";
 import { useBlueToast } from "@/hooks/useBlueToast";
 
 const saleSchema = z.object({
@@ -59,6 +60,9 @@ export function SaleForm() {
   const [showProductSearch, setShowProductSearch] = useState(false);
 
   const { showSuccess, showError } = useBlueToast();
+  const { products } = useProducts();
+  const { inventory } = useInventory();
+  const { createSale, isCreating } = useSales();
 
   const form = useForm<SaleFormData>({
     resolver: zodResolver(saleSchema),
