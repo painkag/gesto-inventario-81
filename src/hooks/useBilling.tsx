@@ -142,6 +142,8 @@ export function useCheckout() {
     mutationFn: async (planType: "essential" | "professional") => {
       if (!company?.id) throw new Error("Empresa não encontrada");
 
+      console.log('Creating checkout for company:', company.id, 'plan:', planType);
+      
       const { data, error } = await supabase.functions.invoke('checkout', {
         body: { 
           company_id: company.id,
@@ -149,7 +151,17 @@ export function useCheckout() {
         }
       });
 
-      if (error) throw error;
+      console.log('Checkout response:', { data, error });
+      
+      if (error) {
+        console.error('Checkout error:', error);
+        throw new Error(error.message || 'Erro no checkout');
+      }
+      
+      if (!data || !data.checkout_url) {
+        throw new Error('URL de checkout não encontrada');
+      }
+      
       return data;
     },
     onSuccess: (data) => {

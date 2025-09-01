@@ -5,11 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Package, ArrowLeft, AlertCircle } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useToast } from "@/hooks/use-toast";
+import { useBlueToast } from "@/hooks/useBlueToast";
 import { supabase } from "@/integrations/supabase/client";
 
 const Login = () => {
-  const { toast } = useToast();
+  const { showSuccess, showError } = useBlueToast();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
@@ -82,33 +82,30 @@ const Login = () => {
 
       if (error) {
         if (error.message.includes("Invalid login credentials")) {
-          toast({
-            title: "Erro no login",
-            description: "E-mail ou senha incorretos. Verifique seus dados e tente novamente.",
-            variant: "destructive"
-          });
+          showError(
+            "Erro no login",
+            "E-mail ou senha incorretos. Verifique seus dados e tente novamente."
+          );
         } else {
-          toast({
-            title: "Erro no login",
-            description: error.message,
-            variant: "destructive"
-          });
+          showError(
+            "Erro no login", 
+            error.message
+          );
         }
       } else if (data.user) {
-        toast({
-          title: "Login realizado com sucesso!",
-          description: "Redirecionando para o painel...",
-        });
+        showSuccess(
+          "Login realizado com sucesso!",
+          "Redirecionando para o painel..."
+        );
 
         // Forçar refresh da página para estado limpo
         window.location.href = '/dashboard';
       }
     } catch (error: any) {
-      toast({
-        title: "Erro no login",
-        description: "Ocorreu um erro inesperado. Tente novamente.",
-        variant: "destructive"
-      });
+      showError(
+        "Erro no login",
+        "Ocorreu um erro inesperado. Tente novamente."
+      );
     } finally {
       setIsLoading(false);
     }
