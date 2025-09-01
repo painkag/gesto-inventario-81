@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
+import { usePermissions } from "@/hooks/usePermissions";
 
 const navigationItems = [
   {
@@ -73,6 +74,7 @@ const reportItems = [
 export function DashboardSidebar() {
   const { state } = useSidebar();
   const location = useLocation();
+  const { canAccessSettings } = usePermissions(); // EM_EDIT: RBAC
   const [isManagementOpen, setIsManagementOpen] = useState(true);
   const [isReportsOpen, setIsReportsOpen] = useState(true);
 
@@ -174,21 +176,23 @@ export function DashboardSidebar() {
           </Collapsible>
         </SidebarGroup>
 
-        {/* Configurações */}
-        <SidebarGroup className="mt-auto">
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <NavLink to="/dashboard/settings" className={getNavCls("/dashboard/settings")}>
-                    <Settings className="h-4 w-4" />
-                    {!isCollapsed && <span>Configurações</span>}
-                  </NavLink>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {/* Configurações - EM_EDIT: Só para OWNER */}
+        {canAccessSettings && (
+          <SidebarGroup className="mt-auto">
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink to="/dashboard/settings" className={getNavCls("/dashboard/settings")}>
+                      <Settings className="h-4 w-4" />
+                      {!isCollapsed && <span>Configurações</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
     </Sidebar>
   );
