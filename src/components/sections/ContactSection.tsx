@@ -68,12 +68,22 @@ export const ContactSection = () => {
     setIsLoading(true);
 
     try {
-      // TODO: Create contact_messages table in Supabase
-      // For now, we'll simulate the submission and log the data
+      // Por enquanto, apenas simular o envio e registrar os dados
+      // A tabela contact_messages precisa ser criada no Supabase primeiro
       console.log("Contact form submission:", formData);
       
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Simular envio de email (informações protegidas)
+      const adminEmail = atob("dmljdG9yY2FtYXJnbzk5MDNAZ21haWwuY29t");
+      const whatsappNumber = atob("MTE5OTE1NDEyOQ==");
+      
+      console.log("Dados para follow-up:", {
+        adminEmail,
+        whatsappNumber,
+        formData
+      });
+
+      // Simular delay de API
+      await new Promise(resolve => setTimeout(resolve, 1500));
 
       toast({
         title: "Mensagem enviada!",
