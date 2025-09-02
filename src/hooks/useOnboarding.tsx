@@ -1,8 +1,9 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCompany } from "./useCompany";
+import { sectorPresets, type SectorKey } from "@/config/sectorPresets";
 
-type SectorType = 'padaria' | 'mercadinho' | 'adega';
+type SectorType = SectorKey;
 
 export function useOnboarding() {
   const queryClient = useQueryClient();
@@ -14,18 +15,14 @@ export function useOnboarding() {
         throw new Error("Empresa não encontrada");
       }
 
-      // Features padrão por setor
-      const sectorFeatures = {
-        padaria: ['weight_control', 'recipes', 'production', 'custom_labels'],
-        mercadinho: ['xml_import', 'promotions', 'barcode', 'multiple_units'],
-        adega: ['commands', 'loyalty_club', 'batch_control', 'table_sales']
-      };
+      // Features do setor selecionado (convertidas para array)
+      const sectorFeatures = [...sectorPresets[sector].features];
 
       const { error } = await supabase
         .from('companies')
         .update({
           sector,
-          sector_features: sectorFeatures[sector]
+          sector_features: sectorFeatures
         })
         .eq('id', company.id);
 
@@ -33,7 +30,7 @@ export function useOnboarding() {
         throw error;
       }
 
-      return { sector, features: sectorFeatures[sector] };
+      return { sector, features: sectorFeatures };
     },
     onSuccess: () => {
       // Invalidar cache da company para refletir as mudanças

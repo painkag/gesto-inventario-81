@@ -14,9 +14,10 @@ import {
 } from "lucide-react";
 import { useOnboarding } from "@/hooks/useOnboarding";
 import { useToast } from "@/hooks/use-toast";
+import { sectorPresets, featureMap, type SectorKey } from "@/config/sectorPresets";
 
 interface SectorOption {
-  id: 'padaria' | 'mercadinho' | 'adega';
+  id: SectorKey;
   name: string;
   description: string;
   icon: React.ElementType;
@@ -30,7 +31,7 @@ const sectorOptions: SectorOption[] = [
     name: 'Padaria',
     description: 'Ideal para padarias, confeitarias e panificadoras',
     icon: Cake,
-    features: ['Controle por peso (KG)', 'Receitas e formulações', 'Controle de produção', 'Etiquetas personalizadas'],
+    features: sectorPresets.padaria.features.map(f => featureMap[f as keyof typeof featureMap]?.name || f),
     color: 'bg-orange-100 text-orange-800 border-orange-200'
   },
   {
@@ -38,7 +39,7 @@ const sectorOptions: SectorOption[] = [
     name: 'Mercadinho',
     description: 'Perfeito para supermercados, mercadinhos e lojas de conveniência',
     icon: ShoppingCart,
-    features: ['Import XML NF-e', 'Sistema de promoções', 'Código de barras', 'Múltiplas unidades'],
+    features: sectorPresets.mercadinho.features.map(f => featureMap[f as keyof typeof featureMap]?.name || f),
     color: 'bg-blue-100 text-blue-800 border-blue-200'
   },
   {
@@ -46,7 +47,7 @@ const sectorOptions: SectorOption[] = [
     name: 'Adega/Bar',
     description: 'Especial para adegas, bares, restaurantes e distribuidoras',
     icon: Wine,
-    features: ['Sistema de comandas', 'Clube de fidelidade', 'Controle por lote', 'Vendas por mesa'],
+    features: sectorPresets.adega.features.map(f => featureMap[f as keyof typeof featureMap]?.name || f),
     color: 'bg-purple-100 text-purple-800 border-purple-200'
   }
 ];
@@ -66,7 +67,7 @@ interface SectorStepProps {
 export default function SectorStep({ onNext }: SectorStepProps) {
   const { toast } = useToast();
   const { updateSector, isUpdating } = useOnboarding();
-  const [selectedSector, setSelectedSector] = useState<'padaria' | 'mercadinho' | 'adega' | null>(null);
+  const [selectedSector, setSelectedSector] = useState<SectorKey | null>(null);
 
   const handleContinue = async () => {
     if (!selectedSector) {

@@ -34,57 +34,15 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { cn } from "@/lib/utils";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useCompany } from "@/hooks/useCompany";
-
-const navigationItems = [
-  {
-    title: "Dashboard",
-    url: "/dashboard",
-    icon: Home,
-    isActive: true
-  }
-];
-
-const managementItems = [
-  {
-    title: "Produtos",
-    url: "/dashboard/products",
-    icon: Package,
-  },
-  {
-    title: "Estoque",
-    url: "/dashboard/inventory", 
-    icon: Archive,
-  },
-  {
-    title: "Vendas",
-    url: "/dashboard/sales",
-    icon: ShoppingCart,
-  },
-  {
-    title: "Compras", 
-    url: "/dashboard/purchases",
-    icon: Truck,
-  }
-];
-
-const reportItems = [
-  {
-    title: "Relatórios",
-    url: "/dashboard/reports",
-    icon: BarChart3,
-  },
-  {
-    title: "Movimentações",
-    url: "/dashboard/movements",
-    icon: FileText,
-  }
-];
+import { useFeatureFlags } from "@/hooks/useFeatureFlags";
+import { navRouteMap } from "@/config/sectorPresets";
 
 export function DashboardSidebar() {
   const { state } = useSidebar();
   const location = useLocation();
   const { canAccessSettings } = usePermissions();
   const { data: company } = useCompany();
+  const { getSectorNavigation } = useFeatureFlags();
   const [isManagementOpen, setIsManagementOpen] = useState(true);
   const [isReportsOpen, setIsReportsOpen] = useState(true);
   const [isSectorOpen, setIsSectorOpen] = useState(true);
@@ -97,38 +55,44 @@ export function DashboardSidebar() {
       ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium" 
       : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground";
 
-  // Sector-specific menu items
-  const getSectorItems = () => {
-    if (!company?.sector) return [];
-
-    const sectorItems = {
-      padaria: [
-        { title: "Receitas", url: "/dashboard/recipes", icon: Cake },
-        { title: "Produção", url: "/dashboard/production", icon: UtensilsCrossed },
-        { title: "Etiquetas", url: "/dashboard/labels", icon: ClipboardList }
-      ],
-      mercadinho: [
-        { title: "Import XML", url: "/dashboard/xml-import", icon: FileText },
-        { title: "Promoções", url: "/dashboard/promotions", icon: BarChart3 }
-      ],
-      adega: [
-        { title: "Comandas", url: "/dashboard/commands", icon: Wine },
-        { title: "Mesas", url: "/dashboard/tables", icon: Layers },
-        { title: "Clube Fidelidade", url: "/dashboard/loyalty", icon: Users }
-      ]
+  // Get sector-specific navigation
+  const sectorNav = getSectorNavigation();
+  
+  // Map navigation items to routes and icons
+  const getNavItems = () => {
+    const iconMap: Record<string, any> = {
+      "Dashboard": Home,
+      "PDV": ShoppingCart,
+      "Produção do Dia": UtensilsCrossed,
+      "Estoque": Archive,
+      "Compras": Truck,
+      "Compras (XML)": FileText,
+      "Promoções": BarChart3,
+      "Comandas": Wine,
+      "Clube": Users,
+      "Relatórios": BarChart3,
+      "Configurações": Settings,
+      "Plano & Pagamentos": CreditCard
     };
 
-    return sectorItems[company.sector as keyof typeof sectorItems] || [];
+    return sectorNav.map(navItem => ({
+      title: navItem,
+      url: navRouteMap[navItem as keyof typeof navRouteMap] || "/dashboard",
+      icon: iconMap[navItem] || Home
+    }));
   };
 
-  const getSectorLabel = () => {
-    const sectorLabels = {
-      padaria: "Padaria",
-      mercadinho: "Mercado", 
-      adega: "Adega/Bar"
-    };
-    return company?.sector ? sectorLabels[company.sector as keyof typeof sectorLabels] : null;
-  };
+  const navItems = getNavItems();
+  
+  // Group navigation items
+  const mainItems = navItems.filter(item => ["Dashboard", "PDV"].includes(item.title));
+  const managementItems = navItems.filter(item => 
+    ["Estoque", "Compras", "Compras (XML)", "Produção do Dia", "Promoções", "Comandas", "Clube"].includes(item.title)
+  );
+  const reportItems = navItems.filter(item => ["Relatórios"].includes(item.title));
+  const settingsItems = navItems.filter(item => 
+    ["Configurações", "Plano & Pagamentos"].includes(item.title)
+  );
 
   const getSectorBadge = () => {
     if (!company?.sector || isCollapsed) return null;
@@ -154,9 +118,6 @@ export function DashboardSidebar() {
     );
   };
 
-  const sectorItems = getSectorItems();
-  const sectorLabel = getSectorLabel();
-
   return (
     <Sidebar className={cn("border-r border-sidebar-border", isCollapsed ? "w-14" : "w-64")}>
       <SidebarContent className="bg-sidebar">
@@ -164,70 +125,39 @@ export function DashboardSidebar() {
         {getSectorBadge()}
 
         {/* Navigation Principal */}
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-sidebar-foreground/70">
-            {!isCollapsed && "Início"}
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {navigationItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <NavLink to={item.url} className={getNavCls(item.url)}>
-                      <item.icon className="h-4 w-4" />
-                      {!isCollapsed && <span>{item.title}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {mainItems.length > 0 && (
+          <SidebarGroup>
+            <SidebarGroupLabel className="text-sidebar-foreground/70">
+              {!isCollapsed && "Início"}
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {mainItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild>
+                      <NavLink to={item.url} className={getNavCls(item.url)}>
+                        <item.icon className="h-4 w-4" />
+                        {!isCollapsed && <span>{item.title}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
 
         {/* Gestão */}
-        <SidebarGroup>
-          <Collapsible open={isManagementOpen} onOpenChange={setIsManagementOpen}>
-            <CollapsibleTrigger asChild>
-              <SidebarGroupLabel className="flex items-center justify-between cursor-pointer text-sidebar-foreground/70 hover:text-sidebar-foreground">
-                {!isCollapsed && "Gestão"}
-                {!isCollapsed && (
-                  <ChevronDown className={cn(
-                    "h-4 w-4 transition-transform",
-                    isManagementOpen && "rotate-180"
-                  )} />
-                )}
-              </SidebarGroupLabel>
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {managementItems.map((item) => (
-                    <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton asChild>
-                        <NavLink to={item.url} className={getNavCls(item.url)}>
-                          <item.icon className="h-4 w-4" />
-                          {!isCollapsed && <span>{item.title}</span>}
-                        </NavLink>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </CollapsibleContent>
-          </Collapsible>
-        </SidebarGroup>
-
-        {/* Sector-Specific Features */}
-        {sectorItems.length > 0 && (
+        {managementItems.length > 0 && (
           <SidebarGroup>
-            <Collapsible open={isSectorOpen} onOpenChange={setIsSectorOpen}>
+            <Collapsible open={isManagementOpen} onOpenChange={setIsManagementOpen}>
               <CollapsibleTrigger asChild>
                 <SidebarGroupLabel className="flex items-center justify-between cursor-pointer text-sidebar-foreground/70 hover:text-sidebar-foreground">
-                  {!isCollapsed && sectorLabel}
+                  {!isCollapsed && "Gestão"}
                   {!isCollapsed && (
                     <ChevronDown className={cn(
                       "h-4 w-4 transition-transform",
-                      isSectorOpen && "rotate-180"
+                      isManagementOpen && "rotate-180"
                     )} />
                   )}
                 </SidebarGroupLabel>
@@ -235,7 +165,7 @@ export function DashboardSidebar() {
               <CollapsibleContent>
                 <SidebarGroupContent>
                   <SidebarMenu>
-                    {sectorItems.map((item) => (
+                    {managementItems.map((item) => (
                       <SidebarMenuItem key={item.title}>
                         <SidebarMenuButton asChild>
                           <NavLink to={item.url} className={getNavCls(item.url)}>
@@ -253,58 +183,55 @@ export function DashboardSidebar() {
         )}
 
         {/* Relatórios */}
-        <SidebarGroup>
-          <Collapsible open={isReportsOpen} onOpenChange={setIsReportsOpen}>
-            <CollapsibleTrigger asChild>
-              <SidebarGroupLabel className="flex items-center justify-between cursor-pointer text-sidebar-foreground/70 hover:text-sidebar-foreground">
-                {!isCollapsed && "Relatórios"}
-                {!isCollapsed && (
-                  <ChevronDown className={cn(
-                    "h-4 w-4 transition-transform",
-                    isReportsOpen && "rotate-180"
-                  )} />
-                )}
-              </SidebarGroupLabel>
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {reportItems.map((item) => (
-                    <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton asChild>
-                        <NavLink to={item.url} className={getNavCls(item.url)}>
-                          <item.icon className="h-4 w-4" />
-                          {!isCollapsed && <span>{item.title}</span>}
-                        </NavLink>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </CollapsibleContent>
-          </Collapsible>
-        </SidebarGroup>
+        {reportItems.length > 0 && (
+          <SidebarGroup>
+            <Collapsible open={isReportsOpen} onOpenChange={setIsReportsOpen}>
+              <CollapsibleTrigger asChild>
+                <SidebarGroupLabel className="flex items-center justify-between cursor-pointer text-sidebar-foreground/70 hover:text-sidebar-foreground">
+                  {!isCollapsed && "Relatórios"}
+                  {!isCollapsed && (
+                    <ChevronDown className={cn(
+                      "h-4 w-4 transition-transform",
+                      isReportsOpen && "rotate-180"
+                    )} />
+                  )}
+                </SidebarGroupLabel>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {reportItems.map((item) => (
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton asChild>
+                          <NavLink to={item.url} className={getNavCls(item.url)}>
+                            <item.icon className="h-4 w-4" />
+                            {!isCollapsed && <span>{item.title}</span>}
+                          </NavLink>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </CollapsibleContent>
+            </Collapsible>
+          </SidebarGroup>
+        )}
 
-        {canAccessSettings && (
+        {/* Settings */}
+        {canAccessSettings && settingsItems.length > 0 && (
           <SidebarGroup className="mt-auto">
             <SidebarGroupContent>
               <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
-                    <NavLink to="/dashboard/settings" className={getNavCls("/dashboard/settings")}>
-                      <Settings className="h-4 w-4" />
-                      {!isCollapsed && <span>Configurações</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
-                    <NavLink to="/dashboard/plano" className={getNavCls("/dashboard/plano")}>
-                      <CreditCard className="h-4 w-4" />
-                      {!isCollapsed && <span>Planos</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
+                {settingsItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild>
+                      <NavLink to={item.url} className={getNavCls(item.url)}>
+                        <item.icon className="h-4 w-4" />
+                        {!isCollapsed && <span>{item.title}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
