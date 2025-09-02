@@ -234,20 +234,242 @@ export function printReceipt(data: ReceiptData) {
   };
 }
 
-export function downloadReceiptPDF(data: ReceiptData) {
-  // For a simple implementation, we'll open the receipt in a new tab
-  // In a production app, you would use a library like jsPDF or generate PDFs server-side
+export async function downloadReceiptPDF(data: ReceiptData) {
+  const { PDFDocument, StandardFonts, rgb } = await import('pdf-lib');
   
-  const htmlContent = generateReceiptHTML(data);
-  const blob = new Blob([htmlContent], { type: 'text/html' });
-  const url = URL.createObjectURL(blob);
-  
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = `recibo-${data.sale.sale_number}.html`;
-  link.click();
-  
-  URL.revokeObjectURL(url);
+  try {
+    const pdfDoc = await PDFDocument.create();
+    const page = pdfDoc.addPage([420, 600]);
+    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+    
+    let yPosition = 560;
+    const leftMargin = 30;
+    const lineHeight = 18;
+    const smallLineHeight = 14;
+    
+    const formatCurrency = (value: number) => {
+      return new Intl.NumberFormat("pt-BR", {
+        style: "currency",
+        currency: "BRL",
+      }).format(value);
+    };
+
+    const formatDate = (dateString: string) => {
+      return new Date(dateString).toLocaleString("pt-BR");
+    };
+
+    // Header - Company Name
+    page.drawText(data.company.name, {
+      x: leftMargin,
+      y: yPosition,
+      size: 16,
+      font: boldFont,
+      color: rgb(0, 0, 0),
+    });
+    yPosition -= lineHeight;
+
+    // Company Info
+    if (data.company.document) {
+      page.drawText(`CNPJ: ${data.company.document}`, {
+        x: leftMargin,
+        y: yPosition,
+        size: 10,
+        font,
+        color: rgb(0.3, 0.3, 0.3),
+      });
+      yPosition -= smallLineHeight;
+    }
+
+    if (data.company.phone) {
+      page.drawText(`Tel: ${data.company.phone}`, {
+        x: leftMargin,
+        y: yPosition,
+        size: 10,
+        font,
+        color: rgb(0.3, 0.3, 0.3),
+      });
+      yPosition -= smallLineHeight;
+    }
+
+    yPosition -= 10;
+
+    // Sale Info
+    page.drawText(`RECIBO DE VENDA`, {
+      x: leftMargin,
+      y: yPosition,
+      size: 14,
+      font: boldFont,
+      color: rgb(0, 0, 0),
+    });
+    yPosition -= lineHeight;
+
+    page.drawText(`Venda: ${data.sale.sale_number}`, {
+      x: leftMargin,
+      y: yPosition,
+      size: 12,
+      font: boldFont,
+    });
+    yPosition -= lineHeight;
+
+    page.drawText(`Data: ${formatDate(data.sale.created_at)}`, {
+      x: leftMargin,
+      y: yPosition,
+      size: 10,
+      font,
+    });
+    yPosition -= smallLineHeight;
+
+    if (data.sale.customer_name) {
+      page.drawText(`Cliente: ${data.sale.customer_name}`, {
+        x: leftMargin,
+        y: yPosition,
+        size: 10,
+        font,
+      });
+      yPosition -= smallLineHeight;
+    }
+
+    // Status
+    const statusText = data.sale.status === 'CANCELLED' ? 'VENDA CANCELADA' : 'VENDA FINALIZADA';
+    const statusColor = data.sale.status === 'CANCELLED' ? rgb(0.8, 0.1, 0.1) : rgb(0.1, 0.6, 0.1);
+    
+    yPosition -= 5;
+    page.drawText(statusText, {
+      x: leftMargin,
+      y: yPosition,
+      size: 12,
+      font: boldFont,
+      color: statusColor,
+    });
+    yPosition -= lineHeight;
+
+    yPosition -= 10;
+
+    // Items Header
+    page.drawText('ITENS:', {
+      x: leftMargin,
+      y: yPosition,
+      size: 11,
+      font: boldFont,
+    });
+    yPosition -= lineHeight;
+
+    // Items List
+    data.items.forEach((item) => {
+      const itemText = `${item.product_name}`;
+      const qtyPriceText = `${item.quantity}x ${formatCurrency(item.unit_price)}`;
+      const totalText = `${formatCurrency(item.total_price)}`;
+
+      page.drawText(`• ${itemText}`, {
+        x: leftMargin,
+        y: yPosition,
+        size: 9,
+        font,
+      });
+
+      page.drawText(qtyPriceText, {
+        x: leftMargin + 200,
+        y: yPosition,
+        size: 9,
+        font,
+      });
+
+      page.drawText(totalText, {
+        x: leftMargin + 300,
+        y: yPosition,
+        size: 9,
+        font: boldFont,
+      });
+
+      yPosition -= smallLineHeight;
+    });
+
+    yPosition -= 10;
+
+    // Totals
+    page.drawText(`Subtotal: ${formatCurrency(data.sale.subtotal)}`, {
+      x: leftMargin + 200,
+      y: yPosition,
+      size: 10,
+      font,
+    });
+    yPosition -= smallLineHeight;
+
+    if (data.sale.discount_amount && data.sale.discount_amount > 0) {
+      page.drawText(`Desconto: -${formatCurrency(data.sale.discount_amount)}`, {
+        x: leftMargin + 200,
+        y: yPosition,
+        size: 10,
+        font,
+        color: rgb(0.8, 0.1, 0.1),
+      });
+      yPosition -= smallLineHeight;
+    }
+
+    page.drawText(`TOTAL: ${formatCurrency(data.sale.total_amount)}`, {
+      x: leftMargin + 200,
+      y: yPosition,
+      size: 12,
+      font: boldFont,
+    });
+    yPosition -= lineHeight;
+
+    // Notes
+    if (data.sale.notes) {
+      yPosition -= 10;
+      page.drawText('OBSERVAÇÕES:', {
+        x: leftMargin,
+        y: yPosition,
+        size: 10,
+        font: boldFont,
+      });
+      yPosition -= smallLineHeight;
+
+      page.drawText(data.sale.notes, {
+        x: leftMargin,
+        y: yPosition,
+        size: 9,
+        font,
+        color: rgb(0.4, 0.4, 0.4),
+      });
+      yPosition -= smallLineHeight;
+    }
+
+    // Footer
+    yPosition -= 20;
+    page.drawText('Obrigado pela preferência!', {
+      x: leftMargin,
+      y: yPosition,
+      size: 10,
+      font,
+      color: rgb(0.5, 0.5, 0.5),
+    });
+    yPosition -= smallLineHeight;
+
+    page.drawText('Estoque Manager - Sistema de Gestão', {
+      x: leftMargin,
+      y: yPosition,
+      size: 8,
+      font,
+      color: rgb(0.6, 0.6, 0.6),
+    });
+
+    const pdfBytes = await pdfDoc.save();
+    
+    const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+    const url = URL.createObjectURL(blob);
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `recibo-${data.sale.sale_number}.pdf`;
+    link.click();
+    
+    URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error('Erro ao gerar PDF:', error);
+    throw new Error('Não foi possível gerar o PDF do recibo');
+  }
 }
 
 export function viewReceiptHTML(data: ReceiptData) {

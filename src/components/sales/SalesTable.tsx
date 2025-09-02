@@ -1,6 +1,6 @@
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Eye, X, MoreHorizontal, Receipt } from "lucide-react";
+import { Eye, X, MoreHorizontal, Receipt, Download } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -32,7 +32,7 @@ import {
 import { useSales } from "@/hooks/useSales";
 import { useCompany } from "@/hooks/useCompany";
 import { useState } from "react";
-import { viewReceiptHTML, printReceipt } from "@/utils/pdfGenerator";
+import { viewReceiptHTML, printReceipt, downloadReceiptPDF } from "@/utils/pdfGenerator";
 import { useToast } from "@/hooks/use-toast";
 
 export function SalesTable() {
@@ -46,9 +46,39 @@ export function SalesTable() {
     setSelectedSale(null);
   };
 
+  const getReceiptData = (sale: any) => {
+    if (!company) return null;
+    
+    return {
+      sale: {
+        id: sale.id,
+        sale_number: sale.sale_number,
+        customer_name: sale.customer_name,
+        total_amount: sale.total_amount,
+        discount_amount: sale.discount_amount,
+        subtotal: sale.subtotal || sale.total_amount + (sale.discount_amount || 0),
+        notes: sale.notes,
+        created_at: sale.created_at,
+        status: sale.status,
+      },
+      items: sale.sale_items.map((item: any) => ({
+        product_name: item.products?.name || 'Produto não encontrado',
+        quantity: item.quantity,
+        unit_price: item.unit_price,
+        total_price: item.total_price,
+      })),
+      company: {
+        name: company.name,
+        document: company.document,
+        phone: company.phone,
+      }
+    };
+  };
+
   const handleViewReceipt = (sale: any) => {
     try {
-      if (!company) {
+      const receiptData = getReceiptData(sale);
+      if (!receiptData) {
         toast({
           title: "Erro",
           description: "Informações da empresa não encontradas.",
@@ -57,36 +87,37 @@ export function SalesTable() {
         return;
       }
 
-      const receiptData = {
-        sale: {
-          id: sale.id,
-          sale_number: sale.sale_number,
-          customer_name: sale.customer_name,
-          total_amount: sale.total_amount,
-          discount_amount: sale.discount_amount,
-          subtotal: sale.subtotal || sale.total_amount + (sale.discount_amount || 0),
-          notes: sale.notes,
-          created_at: sale.created_at,
-          status: sale.status,
-        },
-        items: sale.sale_items.map((item: any) => ({
-          product_name: item.products?.name || 'Produto não encontrado',
-          quantity: item.quantity,
-          unit_price: item.unit_price,
-          total_price: item.total_price,
-        })),
-        company: {
-          name: company.name,
-          document: company.document,
-          phone: company.phone,
-        }
-      };
-
       viewReceiptHTML(receiptData);
     } catch (error) {
       toast({
         title: "Erro ao gerar recibo",
         description: "Não foi possível abrir o recibo. Tente novamente.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleDownloadPDF = async (sale: any) => {
+    try {
+      const receiptData = getReceiptData(sale);
+      if (!receiptData) {
+        toast({
+          title: "Erro",
+          description: "Informações da empresa não encontradas.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      await downloadReceiptPDF(receiptData);
+      toast({
+        title: "PDF baixado!",
+        description: "O recibo foi baixado com sucesso.",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro ao gerar PDF",
+        description: "Não foi possível gerar o PDF do recibo. Tente novamente.",
         variant: "destructive"
       });
     }
@@ -191,6 +222,10 @@ export function SalesTable() {
                     <DropdownMenuItem onClick={() => handleViewReceipt(sale)}>
                       <Receipt className="mr-2 h-4 w-4" />
                       Ver recibo
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleDownloadPDF(sale)}>
+                      <Download className="mr-2 h-4 w-4" />
+                      Baixar PDF
                     </DropdownMenuItem>
                     {sale.status === "COMPLETED" && (
                       <>
