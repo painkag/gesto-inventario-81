@@ -1,56 +1,32 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCompany } from "./useCompany";
-import { useToast } from "./use-toast";
-import type { Database } from "@/integrations/supabase/types";
-
-type Sale = Database["public"]["Tables"]["sales"]["Row"];
-type SaleInsert = Database["public"]["Tables"]["sales"]["Insert"];
-type SaleItem = Database["public"]["Tables"]["sale_items"]["Row"];
-type SaleItemInsert = Database["public"]["Tables"]["sale_items"]["Insert"];
-
-interface SaleWithItems extends Sale {
-  sale_items: (SaleItem & {
-    products: {
-      id: string;
-      name: string;
-      short_code: number | null;
-    } | null;
-  })[];
-}
-
-interface CreateSaleData {
-  customer_name?: string;
-  customer_phone?: string;
-  discount?: number;
-  notes?: string;
-  items: {
-    product_id: string;
-    quantity: number;
-    unit_price: number;
-  }[];
-}
+import { useToast } from "@/hooks/use-toast";
 
 export function useSales() {
+  const queryClient = useQueryClient();
   const { data: company } = useCompany();
   const { toast } = useToast();
-  const queryClient = useQueryClient();
 
-  const salesQuery = useQuery({
+  const sales = useQuery({
     queryKey: ["sales", company?.id],
     queryFn: async () => {
       if (!company?.id) return [];
-
+      
       const { data, error } = await supabase
         .from("sales")
         .select(`
           *,
           sale_items!sale_items_sale_id_fkey (
-            *,
+            id,
+            product_id,
+            quantity,
+            unit_price,
+            total_price,
             products!sale_items_product_id_fkey (
               id,
               name,
-              short_code
+              code
             )
           )
         `)
@@ -58,177 +34,199 @@ export function useSales() {
         .order("created_at", { ascending: false });
 
       if (error) {
-        console.error("Sales query error:", error);
+        console.error("Error fetching sales:", error);
         throw error;
       }
-      return data;
+
+      return data || [];
     },
     enabled: !!company?.id,
   });
 
+  // Enhanced sale creation with FEFO processing via Edge Function
   const createSale = useMutation({
-    mutationFn: async (saleData: CreateSaleData) => {
-      if (!company?.id) throw new Error("Company not found");
+    mutationFn: async (saleData: {
+      customer_name?: string;
+      discount?: number;
+      notes?: string;
+      items: {
+        product_id: string;
+        quantity: number;
+        unit_price: number;
+      }[];
+    }) => {
+      if (!company?.id) {
+        throw new Error("Company not found");
+      }
 
-      // Obter próximo número da venda
-      const { data: nextNumberData, error: numberError } = await supabase
-        .rpc("next_sale_number", { comp_id: company.id });
+      // Transform data for the Edge Function
+      const requestBody = {
+        companyId: company.id,
+        items: saleData.items.map(item => ({
+          productId: item.product_id,
+          quantity: item.quantity,
+          unitPrice: item.unit_price
+        })),
+        payment: {
+          method: 'CASH' as const, // Default payment method
+          discountPct: saleData.discount ? (saleData.discount / saleData.items.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0)) * 100 : 0
+        },
+        customerName: saleData.customer_name,
+        notes: saleData.notes
+      };
 
-      if (numberError) throw numberError;
+      console.log('Creating sale with FEFO processing:', requestBody);
 
-      const total = saleData.items.reduce(
-        (sum, item) => sum + item.quantity * item.unit_price,
-        0
-      );
+      // Call the Edge Function for FEFO processing
+      const { data, error } = await supabase.functions.invoke('process-sale', {
+        body: requestBody
+      });
 
-      const finalTotal = total - (saleData.discount || 0);
+      if (error) {
+        console.error('Sale processing error:', error);
+        throw error;
+      }
 
-      // Criar a venda
-      const { data: sale, error: saleError } = await supabase
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to process sale');
+      }
+
+      return {
+        id: data.saleId,
+        sale_number: data.saleNumber,
+        total: data.total
+      };
+    },
+    onSuccess: (data) => {
+      console.log('Sale created successfully:', data);
+      
+      // Invalidate related queries
+      queryClient.invalidateQueries({ queryKey: ["sales"] });
+      queryClient.invalidateQueries({ queryKey: ["inventory"] });
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      queryClient.invalidateQueries({ queryKey: ["stock-movements"] });
+      
+      toast({
+        title: "Venda criada com sucesso!",
+        description: `Venda ${data.sale_number} processada com FEFO automático.`
+      });
+    },
+    onError: (error: any) => {
+      console.error('Sale creation error:', error);
+      
+      const errorMessage = error?.message || 'Erro desconhecido';
+      
+      if (errorMessage.includes('Estoque insuficiente')) {
+        toast({
+          title: "Estoque insuficiente",
+          description: "Não há estoque suficiente para completar esta venda.",
+          variant: "destructive"
+        });
+      } else if (errorMessage.includes('Inventory error')) {
+        toast({
+          title: "Erro de estoque",
+          description: "Erro ao processar movimentação de estoque. Verifique o estoque disponível.",
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Erro ao criar venda",
+          description: errorMessage,
+          variant: "destructive"
+        });
+      }
+    },
+  });
+
+  const updateSale = useMutation({
+    mutationFn: async ({ id, ...data }: any) => {
+      const { data: result, error } = await supabase
         .from("sales")
-        .insert({
-          company_id: company.id,
-          sale_number: nextNumberData.toString(),
-          customer_name: saleData.customer_name || "",
-          total_amount: finalTotal,
-          discount_amount: saleData.discount || 0,
-          notes: saleData.notes || "",
-          status: "COMPLETED",
-        })
+        .update(data)
+        .eq("id", id)
         .select()
         .single();
 
-      if (saleError) throw saleError;
-
-      // Criar os itens da venda
-      const saleItems = saleData.items.map((item) => ({
-        company_id: company.id,
-        sale_id: sale.id,
-        product_id: item.product_id,
-        quantity: item.quantity,
-        unit_price: item.unit_price,
-        total_price: item.quantity * item.unit_price,
-      }));
-
-      const { error: itemsError } = await supabase
-        .from("sale_items")
-        .insert(saleItems);
-
-      if (itemsError) throw itemsError;
-
-      // Processar cada item da venda com FEFO automático
-      for (const item of saleData.items) {
-        // Consumir estoque automaticamente via FEFO
-        try {
-          const { error: fefoError } = await supabase
-            .rpc("consume_fefo", {
-              p_company: company.id,
-              p_product: item.product_id,
-              p_qty: item.quantity
-            });
-
-          if (fefoError) {
-            console.error("FEFO consumption error:", fefoError);
-            throw new Error(`Erro no abatimento FEFO: ${fefoError.message}`);
-          }
-
-        } catch (error: any) {
-          console.error("Error in FEFO consumption:", error);
-          throw new Error(`Estoque insuficiente para o produto: ${error.message}`);
-        }
-      }
-
-      return sale;
+      if (error) throw error;
+      return result;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["sales", company?.id] });
-      queryClient.invalidateQueries({ queryKey: ["inventory", company?.id] });
-      queryClient.invalidateQueries({ queryKey: ["inventory-batches", company?.id] });
-      queryClient.invalidateQueries({ queryKey: ["stock-movements", company?.id] });
+      queryClient.invalidateQueries({ queryKey: ["sales"] });
       toast({
-        title: "Venda realizada",
-        description: "A venda foi registrada com sucesso.",
-        variant: "success",
+        title: "Venda atualizada!",
+        description: "Os dados da venda foram atualizados com sucesso."
       });
     },
     onError: (error: any) => {
       toast({
-        title: "Erro ao realizar venda",
-        description: error.message || "Ocorreu um erro ao registrar a venda.",
-        variant: "destructive",
+        title: "Erro ao atualizar venda",
+        description: error.message || "Tente novamente.",
+        variant: "destructive"
+      });
+    },
+  });
+
+  const deleteSale = useMutation({
+    mutationFn: async (saleId: string) => {
+      const { error } = await supabase
+        .from("sales")
+        .delete()
+        .eq("id", saleId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["sales"] });
+      toast({
+        title: "Venda excluída!",
+        description: "A venda foi excluída com sucesso."
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro ao excluir venda",
+        description: error.message || "Tente novamente.",
+        variant: "destructive"
       });
     },
   });
 
   const cancelSale = useMutation({
     mutationFn: async (saleId: string) => {
-      const { data: sale, error: fetchError } = await supabase
-        .from("sales")
-        .select(`
-          *,
-          sale_items!sale_items_sale_id_fkey (
-            product_id,
-            quantity
-          )
-        `)
-        .eq("id", saleId)
-        .single();
-
-      if (fetchError) throw fetchError;
-
-      // Atualizar status da venda
-      const { error: updateError } = await supabase
+      const { error } = await supabase
         .from("sales")
         .update({ status: "CANCELLED" })
         .eq("id", saleId);
 
-      if (updateError) throw updateError;
-
-      // Estornar movimentações de estoque
-      for (const item of sale.sale_items) {
-        const { error: movementError } = await supabase
-          .from("stock_movements")
-          .insert({
-            company_id: company?.id,
-            product_id: item.product_id,
-            type: "adjustment",
-            quantity: item.quantity,
-            reference_id: saleId,
-            reference_type: "sale_cancellation",
-            reason: `Cancelamento da venda #${sale.sale_number}`,
-          });
-
-        if (movementError) throw movementError;
-      }
-
-      return sale;
+      if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["sales", company?.id] });
-      queryClient.invalidateQueries({ queryKey: ["inventory", company?.id] });
-      queryClient.invalidateQueries({ queryKey: ["stock-movements", company?.id] });
+      queryClient.invalidateQueries({ queryKey: ["sales"] });
       toast({
-        title: "Venda cancelada",
-        description: "A venda foi cancelada e o estoque foi estornado.",
-        variant: "success",
+        title: "Venda cancelada!",
+        description: "A venda foi cancelada com sucesso."
       });
     },
     onError: (error: any) => {
       toast({
         title: "Erro ao cancelar venda",
-        description: error.message || "Ocorreu um erro ao cancelar a venda.",
-        variant: "destructive",
+        description: error.message || "Tente novamente.",
+        variant: "destructive"
       });
     },
   });
 
   return {
-    sales: salesQuery.data || [],
-    isLoading: salesQuery.isLoading,
-    error: salesQuery.error,
+    sales: sales.data || [],
+    isLoading: sales.isLoading,
+    error: sales.error,
     createSale,
+    updateSale,
+    deleteSale,
     cancelSale,
     isCreating: createSale.isPending,
+    isUpdating: updateSale.isPending,
+    isDeleting: deleteSale.isPending,
     isCancelling: cancelSale.isPending,
   };
 }

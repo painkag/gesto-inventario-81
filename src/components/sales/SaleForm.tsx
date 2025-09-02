@@ -481,16 +481,31 @@ export function SaleForm() {
         <BarcodeScanner
           open={showScanner}
           onOpenChange={setShowScanner}
-          onScanSuccess={(barcode) => {
+          onScanSuccess={async (barcode) => {
+            console.log('Barcode scanned:', barcode);
+            
+            // Look up product by barcode
             const product = products?.find(p => p.code === barcode);
             if (product) {
               addProduct(product);
+              showSuccess(
+                "Produto adicionado!",
+                `${product.name} foi adicionado à venda.`
+              );
             } else {
               showError(
                 "Produto não encontrado",
                 `Código ${barcode} não foi encontrado no sistema.`
               );
             }
+            setShowScanner(false);
+          }}
+          onError={(error) => {
+            console.error('Scanner error:', error);
+            showError(
+              "Erro no scanner",
+              "Erro ao acessar a câmera ou processar o código."
+            );
           }}
         />
       </DialogContent>

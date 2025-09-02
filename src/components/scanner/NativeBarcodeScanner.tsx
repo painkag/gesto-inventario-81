@@ -1,10 +1,17 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { useProductLookup } from "@/hooks/useProductLookup";
 
-export function BarcodeScanner({ onScan }: { onScan: (code: string) => void }) {
+interface BarcodeScannerProps {
+  onScan: (product: any) => void;
+  onError?: (error: string) => void;
+}
+
+export function BarcodeScanner({ onScan, onError }: BarcodeScannerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [err, setErr] = useState<string>();
   const [isScanning, setIsScanning] = useState(false);
+  const { lookupByBarcode } = useProductLookup();
 
   useEffect(() => {
     let stream: MediaStream;
@@ -36,8 +43,17 @@ export function BarcodeScanner({ onScan }: { onScan: (code: string) => void }) {
               const codes = await detector.detect(bitmap);
               
               if (codes?.[0]?.rawValue) {
-                onScan(codes[0].rawValue);
-                console.log('Barcode detected:', codes[0].rawValue);
+                const barcode = codes[0].rawValue;
+                console.log('Barcode detected:', barcode);
+                
+                // Look up product and call onScan with product data
+                const product = await lookupByBarcode(barcode);
+                if (product) {
+                  onScan(product);
+                } else if (onError) {
+                  onError(`Produto não encontrado para o código ${barcode}`);
+                }
+                return; // Stop scanning after successful detection
               }
               
               animationFrame = requestAnimationFrame(tick);
@@ -49,11 +65,15 @@ export function BarcodeScanner({ onScan }: { onScan: (code: string) => void }) {
           
           animationFrame = requestAnimationFrame(tick);
         } else {
-          setErr("BarcodeDetector não suportado — instale como app mobile ou use Chrome/Edge.");
+          const errorMsg = "BarcodeDetector não suportado — instale como app mobile ou use Chrome/Edge.";
+          setErr(errorMsg);
+          if (onError) onError(errorMsg);
         }
       } catch (error: any) { 
-        setErr(`Erro ao acessar câmera: ${error.message}`);
+        const errorMsg = `Erro ao acessar câmera: ${error.message}`;
+        setErr(errorMsg);
         setIsScanning(false);
+        if (onError) onError(errorMsg);
       }
     };
 
@@ -68,7 +88,7 @@ export function BarcodeScanner({ onScan }: { onScan: (code: string) => void }) {
       }
       setIsScanning(false);
     };
-  }, [onScan]);
+  }, [lookupByBarcode, onScan, onError]);
 
   return (
     <div className="relative">
