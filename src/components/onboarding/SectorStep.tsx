@@ -1,186 +1,108 @@
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { 
-  Cake, 
-  ShoppingCart, 
-  Wine, 
-  Package2, 
-  Calculator,
-  Receipt,
-  BarChart3,
-  Users
-} from "lucide-react";
-import { useOnboarding } from "@/hooks/useOnboarding";
+import { sectorPresets, type SectorKey } from "@/config/sectors";
+import { supabase } from "@/integrations/supabase/client";
+import { useCompany } from "@/hooks/useCompany";
 import { useToast } from "@/hooks/use-toast";
-import { sectorPresets, featureMap, type SectorKey } from "@/config/sectors";
-
-interface SectorOption {
-  id: SectorKey;
-  name: string;
-  description: string;
-  icon: React.ElementType;
-  features: string[];
-  color: string;
-}
-
-const sectorOptions: SectorOption[] = [
-  {
-    id: 'padaria',
-    name: 'Padaria',
-    description: 'Ideal para padarias, confeitarias e panificadoras',
-    icon: Cake,
-    features: sectorPresets.padaria.features.map(f => featureMap[f as keyof typeof featureMap]?.name || f),
-    color: 'bg-orange-100 text-orange-800 border-orange-200'
-  },
-  {
-    id: 'mercadinho',
-    name: 'Mercadinho',
-    description: 'Perfeito para supermercados, mercadinhos e lojas de conveniência',
-    icon: ShoppingCart,
-    features: sectorPresets.mercadinho.features.map(f => featureMap[f as keyof typeof featureMap]?.name || f),
-    color: 'bg-blue-100 text-blue-800 border-blue-200'
-  },
-  {
-    id: 'adega',
-    name: 'Adega/Bar',
-    description: 'Especial para adegas, bares, restaurantes e distribuidoras',
-    icon: Wine,
-    features: sectorPresets.adega.features.map(f => featureMap[f as keyof typeof featureMap]?.name || f),
-    color: 'bg-purple-100 text-purple-800 border-purple-200'
-  }
-];
-
-const commonFeatures = [
-  { icon: Package2, label: 'Controle de estoque FEFO' },
-  { icon: Calculator, label: 'PDV com scanner' },
-  { icon: Receipt, label: 'Emissão de recibos' },
-  { icon: BarChart3, label: 'Relatórios e dashboards' },
-  { icon: Users, label: 'Multi-usuário com permissões' }
-];
 
 interface SectorStepProps {
   onNext: () => void;
 }
 
 export default function SectorStep({ onNext }: SectorStepProps) {
+  const { data: company } = useCompany();
   const { toast } = useToast();
-  const { updateSector, isUpdating } = useOnboarding();
-  const [selectedSector, setSelectedSector] = useState<SectorKey | null>(null);
+  const [sector, setSector] = useState<SectorKey>("mercadinho");
+  const [saving, setSaving] = useState(false);
 
-  const handleContinue = async () => {
-    if (!selectedSector) {
+  async function save() {
+    if (!company?.id) {
       toast({
-        title: "Seleção necessária",
-        description: "Por favor, escolha o tipo do seu negócio para continuar.",
+        title: "Erro",
+        description: "Empresa não encontrada.",
         variant: "destructive"
       });
       return;
     }
 
-    try {
-      await updateSector(selectedSector);
-      toast({
-        title: "Configuração salva!",
-        description: `Seu negócio foi configurado como ${sectorOptions.find(s => s.id === selectedSector)?.name}.`
-      });
-      onNext();
-    } catch (error) {
+    setSaving(true);
+    const features = [...sectorPresets[sector].features];
+    const { error } = await supabase
+      .from("companies")
+      .update({ sector, sector_features: features })
+      .eq("id", company.id);
+    
+    setSaving(false);
+    
+    if (error) {
       toast({
         title: "Erro ao salvar",
-        description: "Ocorreu um erro ao salvar sua configuração. Tente novamente.",
+        description: error.message,
         variant: "destructive"
       });
+    } else {
+      toast({
+        title: "Configuração salva!",
+        description: `Seu negócio foi configurado como ${getSectorLabel(sector)}.`
+      });
+      onNext();
     }
+  }
+
+  const getSectorLabel = (k: SectorKey) => {
+    const labels = {
+      padaria: "Mini Padaria",
+      mercadinho: "Mercadinho", 
+      adega: "Adega/Bar"
+    };
+    return labels[k];
   };
+
+  const getSectorDesc = (k: SectorKey) => {
+    const descriptions = {
+      padaria: "Vender por KG • Receitas • Produção do dia",
+      mercadinho: "FEFO • Importar NF-e (XML) • Promoções",
+      adega: "Comandas • Clube • Notas de degustação"
+    };
+    return descriptions[k];
+  };
+
+  const Card = ({ k, label, desc }: { k: SectorKey; label: string; desc: string }) => (
+    <button 
+      onClick={() => setSector(k)} 
+      className={`rounded-xl p-4 border text-left transition-all ${
+        sector === k 
+          ? "border-primary bg-primary/5 ring-2 ring-primary" 
+          : "border-border hover:border-primary/50 hover:bg-muted/30"
+      }`}
+    >
+      <div className="text-lg font-medium">{label}</div>
+      <div className="text-sm text-muted-foreground mt-1">{desc}</div>
+    </button>
+  );
 
   return (
     <div className="space-y-6">
-      {/* Sector Selection */}
-      <div className="grid gap-4 md:grid-cols-3">
-        {sectorOptions.map((sector) => {
-          const Icon = sector.icon;
-          const isSelected = selectedSector === sector.id;
-          
-          return (
-            <Card 
-              key={sector.id}
-              className={`cursor-pointer transition-all duration-200 hover:shadow-lg ${
-                isSelected 
-                  ? 'ring-2 ring-primary bg-primary/5 border-primary' 
-                  : 'hover:border-primary/50'
-              }`}
-              onClick={() => setSelectedSector(sector.id)}
-            >
-              <CardContent className="p-4 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <div className={`p-2 rounded-lg ${sector.color}`}>
-                      <Icon className="h-5 w-5" />
-                    </div>
-                    <h3 className="font-semibold text-sm">{sector.name}</h3>
-                  </div>
-                  {isSelected && (
-                    <div className="h-2 w-2 bg-primary rounded-full" />
-                  )}
-                </div>
-                
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  {sector.description}
-                </p>
-                
-                <div className="space-y-2">
-                  <p className="text-xs font-medium text-muted-foreground">Funcionalidades exclusivas:</p>
-                  <div className="flex flex-wrap gap-1">
-                    {sector.features.map((feature, idx) => (
-                      <Badge key={idx} variant="outline" className="text-xs px-2 py-0.5">
-                        {feature}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+      <div>
+        <h2 className="text-xl font-semibold">Escolha seu modelo de negócio</h2>
+        <p className="text-sm text-muted-foreground mt-1">
+          Selecione o tipo que melhor descreve seu negócio para configurar as funcionalidades ideais.
+        </p>
       </div>
-
-      {/* Common Features */}
-      <div className="bg-muted/30 rounded-lg p-4 space-y-3">
-        <h4 className="text-sm font-medium text-center">
-          ✨ Funcionalidades incluídas em todos os planos:
-        </h4>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-          {commonFeatures.map((feature, idx) => {
-            const Icon = feature.icon;
-            return (
-              <div key={idx} className="flex items-center space-x-2 text-xs text-muted-foreground">
-                <Icon className="h-3 w-3 flex-shrink-0" />
-                <span>{feature.label}</span>
-              </div>
-            );
-          })}
-        </div>
+      
+      <div className="grid md:grid-cols-3 gap-4">
+        <Card k="padaria" label="Mini Padaria" desc={getSectorDesc("padaria")} />
+        <Card k="mercadinho" label="Mercadinho" desc={getSectorDesc("mercadinho")} />
+        <Card k="adega" label="Adega/Bar" desc={getSectorDesc("adega")} />
       </div>
-
-      {/* Continue Button */}
+      
       <div className="flex justify-center pt-4">
-        <Button 
-          onClick={handleContinue}
-          disabled={!selectedSector || isUpdating}
-          size="lg"
-          className="min-w-48"
+        <button 
+          onClick={save} 
+          disabled={saving} 
+          className="rounded-lg px-6 py-2 bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 min-w-32"
         >
-          {isUpdating ? (
-            <>
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-              Configurando...
-            </>
-          ) : (
-            'Continuar'
-          )}
-        </Button>
+          {saving ? "Salvando..." : "Concluir"}
+        </button>
       </div>
     </div>
   );
