@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { InventoryTable } from "./InventoryTable";
 import { BatchesTable } from "./BatchesTable";
 import { StockMovementsTable } from "./StockMovementsTable";
