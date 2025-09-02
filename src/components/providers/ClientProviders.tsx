@@ -15,8 +15,13 @@ export function ClientProviders({ children }: ClientProvidersProps) {
     setMounted(true);
   }, []);
 
+  // Render without providers during SSR/initial mount
   if (!mounted) {
-    return <>{children}</>;
+    return (
+      <div style={{ visibility: "hidden" }}>
+        {children}
+      </div>
+    );
   }
 
   return (
@@ -26,7 +31,7 @@ export function ClientProviders({ children }: ClientProvidersProps) {
       enableSystem
       disableTransitionOnChange
     >
-      <TooltipProvider>
+      <TooltipProvider delayDuration={200}>
         {children}
         <Toaster />
         <Sonner />
