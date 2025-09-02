@@ -12,15 +12,18 @@ export function ClientProviders({ children }: ClientProvidersProps) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
+    // Use a small delay to ensure React is fully initialized
+    const timer = setTimeout(() => {
+      setMounted(true);
+    }, 100);
+
+    return () => clearTimeout(timer);
   }, []);
 
-  // Render without providers during SSR/initial mount
+  // Show minimal loading until React is fully initialized
   if (!mounted) {
     return (
-      <div style={{ visibility: "hidden" }}>
-        {children}
-      </div>
+      <div className="min-h-screen bg-white dark:bg-gray-900" />
     );
   }
 
