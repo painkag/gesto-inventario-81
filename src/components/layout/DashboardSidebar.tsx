@@ -35,7 +35,7 @@ import { cn } from "@/lib/utils";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useCompany } from "@/hooks/useCompany";
 import { useFeatureFlags } from "@/hooks/useFeatureFlags";
-import { navRouteMap } from "@/config/sectorPresets";
+import { navRouteMap } from "@/config/sectors";
 
 export function DashboardSidebar() {
   const { state } = useSidebar();

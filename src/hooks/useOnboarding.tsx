@@ -1,7 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCompany } from "./useCompany";
-import { sectorPresets, type SectorKey } from "@/config/sectorPresets";
+import { sectorPresets, type SectorKey } from "@/config/sectors";
+import { deriveFeatures } from "@/config/sectorUtils";
 
 type SectorType = SectorKey;
 
@@ -15,8 +16,8 @@ export function useOnboarding() {
         throw new Error("Empresa não encontrada");
       }
 
-      // Features do setor selecionado (convertidas para array)
-      const sectorFeatures = [...sectorPresets[sector].features];
+      // Features do setor selecionado
+      const sectorFeatures = deriveFeatures(sector);
 
       const { error } = await supabase
         .from('companies')

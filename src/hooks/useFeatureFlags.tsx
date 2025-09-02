@@ -1,5 +1,6 @@
 import { useCompany } from "./useCompany";
-import { getSectorConfig, hasSectorFeature, featureMap, type SectorKey } from "@/config/sectorPresets";
+import { getSectorConfig, hasSectorFeature, deriveNav, deriveFeatures } from "@/config/sectorUtils";
+import { featureMap, type SectorKey } from "@/config/sectors";
 
 export function useFeatureFlags() {
   const { data: company } = useCompany();
@@ -10,13 +11,13 @@ export function useFeatureFlags() {
   };
 
   const getSectorFeatures = () => {
-    const config = getSectorConfig(sector);
-    return config?.features || [];
+    if (!sector) return [];
+    return deriveFeatures(sector, company?.sector_features as string[]);
   };
 
   const getSectorNavigation = () => {
-    const config = getSectorConfig(sector);
-    return config?.nav || [];
+    if (!sector) return [];
+    return deriveNav(sector);
   };
 
   const getFeatureConfig = (feature: keyof typeof featureMap) => {

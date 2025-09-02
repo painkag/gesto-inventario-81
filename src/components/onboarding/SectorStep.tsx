@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { useOnboarding } from "@/hooks/useOnboarding";
 import { useToast } from "@/hooks/use-toast";
-import { sectorPresets, featureMap, type SectorKey } from "@/config/sectorPresets";
+import { sectorPresets, featureMap, type SectorKey } from "@/config/sectors";
 
 interface SectorOption {
   id: SectorKey;

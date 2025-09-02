@@ -114,18 +114,3 @@ export const navRouteMap = {
   "Configurações": "/settings",
   "Plano & Pagamentos": "/plans"
 } as const;
-
-// Helper para obter configuração do setor
-export function getSectorConfig(sector: SectorKey | null | undefined) {
-  if (!sector || !(sector in sectorPresets)) {
-    return null;
-  }
-  return sectorPresets[sector];
-}
-
-// Helper para verificar se uma feature está ativa
-export function hasSectorFeature(sector: SectorKey | null | undefined, feature: string) {
-  const config = getSectorConfig(sector);
-  if (!config) return false;
-  return (config.features as readonly string[]).includes(feature);
-}
