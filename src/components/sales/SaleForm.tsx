@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useNavigate } from "react-router-dom";
-import { Plus, Minus, Search, ShoppingCart } from "lucide-react";
+import { Plus, Minus, Search, ShoppingCart, ScanLine } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -36,6 +36,7 @@ import { useProducts } from "@/hooks/useProducts";
 import { useSales } from "@/hooks/useSales";
 import { useInventory } from "@/hooks/useInventory";
 import { useBlueToast } from "@/hooks/useBlueToast";
+import BarcodeScanner from "@/components/scanner/BarcodeScanner";
 
 const saleSchema = z.object({
   customer_name: z.string().optional(),
@@ -59,6 +60,7 @@ export function SaleForm() {
   const [items, setItems] = useState<SaleItem[]>([]);
   const [productSearch, setProductSearch] = useState("");
   const [showProductSearch, setShowProductSearch] = useState(false);
+  const [showScanner, setShowScanner] = useState(false);
 
   const navigate = useNavigate();
   const { showSuccess, showError } = useBlueToast();
@@ -484,11 +486,10 @@ export function SaleForm() {
             if (product) {
               addProduct(product);
             } else {
-              toast({
-                title: "Produto não encontrado",
-                description: `Código ${barcode} não foi encontrado no sistema.`,
-                variant: "destructive"
-              });
+              showError(
+                "Produto não encontrado",
+                `Código ${barcode} não foi encontrado no sistema.`
+              );
             }
           }}
         />

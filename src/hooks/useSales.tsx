@@ -116,55 +116,25 @@ export function useSales() {
 
       if (itemsError) throw itemsError;
 
-      // Registrar movimentações de estoque e atualizar batches
+      // Processar cada item da venda com FEFO automático
       for (const item of saleData.items) {
-        // 1. Registrar movimento de estoque
-        const { error: movementError } = await supabase
-          .from("stock_movements")
-          .insert({
-            company_id: company.id,
-            product_id: item.product_id,
-            type: "OUT",
-            quantity: -item.quantity,
-            reference_id: sale.id,
-            reference_type: "sale",
-            reason: `Venda #${nextNumberData}`,
-          });
+        // Consumir estoque automaticamente via FEFO
+        try {
+          const { error: fefoError } = await supabase
+            .rpc("consume_fefo", {
+              p_company: company.id,
+              p_product: item.product_id,
+              p_qty: item.quantity
+            });
 
-        if (movementError) throw movementError;
+          if (fefoError) {
+            console.error("FEFO consumption error:", fefoError);
+            throw new Error(`Erro no abatimento FEFO: ${fefoError.message}`);
+          }
 
-        // 2. Atualizar inventory_batches (FIFO)
-        let remainingQuantity = item.quantity;
-        
-        const { data: existingBatches, error: batchesError } = await supabase
-          .from("inventory_batches")
-          .select("*")
-          .eq("company_id", company.id)
-          .eq("product_id", item.product_id)
-          .gt("quantity", 0)
-          .order("created_at", { ascending: true });
-
-        if (batchesError) throw batchesError;
-
-        for (const batch of existingBatches || []) {
-          if (remainingQuantity <= 0) break;
-
-          const quantityToDeduct = Math.min(batch.quantity, remainingQuantity);
-          const newQuantity = batch.quantity - quantityToDeduct;
-
-          const { error: updateError } = await supabase
-            .from("inventory_batches")
-            .update({ quantity: newQuantity })
-            .eq("id", batch.id);
-
-          if (updateError) throw updateError;
-
-          remainingQuantity -= quantityToDeduct;
-        }
-
-        // Verificar se havia estoque suficiente
-        if (remainingQuantity > 0) {
-          throw new Error(`Estoque insuficiente para o produto. Faltam ${remainingQuantity} unidades.`);
+        } catch (error: any) {
+          console.error("Error in FEFO consumption:", error);
+          throw new Error(`Estoque insuficiente para o produto: ${error.message}`);
         }
       }
 

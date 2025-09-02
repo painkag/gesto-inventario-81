@@ -1,6 +1,6 @@
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Eye, X, MoreHorizontal } from "lucide-react";
+import { Eye, X, MoreHorizontal, Receipt } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -30,15 +30,66 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useSales } from "@/hooks/useSales";
+import { useCompany } from "@/hooks/useCompany";
 import { useState } from "react";
+import { viewReceiptHTML, printReceipt } from "@/utils/pdfGenerator";
+import { useToast } from "@/hooks/use-toast";
 
 export function SalesTable() {
   const { sales, cancelSale, isCancelling } = useSales();
+  const { data: company } = useCompany();
+  const { toast } = useToast();
   const [selectedSale, setSelectedSale] = useState<string | null>(null);
 
   const handleCancelSale = (saleId: string) => {
     cancelSale.mutate(saleId);
     setSelectedSale(null);
+  };
+
+  const handleViewReceipt = (sale: any) => {
+    try {
+      if (!company) {
+        toast({
+          title: "Erro",
+          description: "Informações da empresa não encontradas.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const receiptData = {
+        sale: {
+          id: sale.id,
+          sale_number: sale.sale_number,
+          customer_name: sale.customer_name,
+          total_amount: sale.total_amount,
+          discount_amount: sale.discount_amount,
+          subtotal: sale.subtotal || sale.total_amount + (sale.discount_amount || 0),
+          notes: sale.notes,
+          created_at: sale.created_at,
+          status: sale.status,
+        },
+        items: sale.sale_items.map((item: any) => ({
+          product_name: item.products?.name || 'Produto não encontrado',
+          quantity: item.quantity,
+          unit_price: item.unit_price,
+          total_price: item.total_price,
+        })),
+        company: {
+          name: company.name,
+          document: company.document,
+          phone: company.phone,
+        }
+      };
+
+      viewReceiptHTML(receiptData);
+    } catch (error) {
+      toast({
+        title: "Erro ao gerar recibo",
+        description: "Não foi possível abrir o recibo. Tente novamente.",
+        variant: "destructive"
+      });
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -136,6 +187,10 @@ export function SalesTable() {
                     <DropdownMenuItem>
                       <Eye className="mr-2 h-4 w-4" />
                       Ver detalhes
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleViewReceipt(sale)}>
+                      <Receipt className="mr-2 h-4 w-4" />
+                      Ver recibo
                     </DropdownMenuItem>
                     {sale.status === "COMPLETED" && (
                       <>
