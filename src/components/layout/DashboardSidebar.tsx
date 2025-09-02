@@ -61,14 +61,14 @@ export function DashboardSidebar() {
   const routeMap: Record<string, string> = {
     "Dashboard": "/dashboard",
     "PDV": "/dashboard/pdv",
-    "Produção do Dia": "/production",
-    "Estoque": "/inventory",
+    "Produção do Dia": "/dashboard/production",
+    "Estoque": "/dashboard/inventory",
     "Compras": "/dashboard/purchases",
     "Compras (XML)": "/dashboard/purchases/xml",
     "Promoções": "/dashboard/promotions",
     "Relatórios": "/dashboard/reports",
-    "Comandas": "/bartabs",
-    "Clube": "/club",
+    "Comandas": "/dashboard/bartabs",
+    "Clube": "/dashboard/club",
     "Configurações": "/dashboard/settings",
     "Plano & Pagamentos": "/dashboard/plano",
   };
