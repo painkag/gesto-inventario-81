@@ -115,11 +115,20 @@ export function SubscriptionStatusCard({ onManageSubscription }: SubscriptionSta
       <CardContent>
         {/* Mostrar plano atual se ativo */}
         {isActive && subscriptionData?.plan && (
-          <div className="mb-4">
+          <div className="mb-4 space-y-2">
             <p className="text-sm text-muted-foreground">
               Plano atual: <span className="font-medium capitalize">{subscriptionData.plan}</span>
               {subscriptionData.ai_enabled && <Badge className="ml-2" variant="secondary">IA Incluída</Badge>}
             </p>
+            {subscriptionData.current_period_end && (
+              <p className="text-xs text-muted-foreground">
+                Renovado em: {new Date(subscriptionData.current_period_end).toLocaleDateString('pt-BR', { 
+                  day: '2-digit', 
+                  month: '2-digit', 
+                  year: 'numeric' 
+                })}
+              </p>
+            )}
           </div>
         )}
 

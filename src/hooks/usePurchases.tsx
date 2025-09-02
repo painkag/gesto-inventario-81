@@ -73,7 +73,10 @@ export function usePurchases() {
       const { data: nextNumberData, error: numberError } = await supabase
         .rpc("next_purchase_number", { comp_id: company.id });
 
-      if (numberError) throw numberError;
+      if (numberError) {
+        console.error("Error getting next purchase number:", numberError);
+        throw new Error("Erro ao obter número da compra: " + numberError.message);
+      }
 
       const total = purchaseData.items.reduce(
         (sum, item) => sum + item.quantity * item.unit_cost,
