@@ -183,14 +183,43 @@ export function useCheckout() {
       return data;
     },
     onSuccess: (data) => {
-      console.log('[CHECKOUT] Success callback triggered, redirecting to:', data.checkout_url);
+      console.log('[CHECKOUT] Success callback triggered with data:', data);
       
-      // Redirecionar diretamente para o Stripe Checkout
-      if (data.checkout_url) {
-        console.log('[CHECKOUT] Executando redirecionamento...');
+      // Verificar se temos a URL de checkout
+      if (!data.checkout_url) {
+        console.error('[CHECKOUT] Nenhuma checkout_url encontrada na resposta:', data);
+        toast({
+          title: "Erro no redirecionamento",
+          description: "URL de checkout não encontrada na resposta.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      console.log('[CHECKOUT] Redirecionando para:', data.checkout_url);
+      
+      // Tentar múltiplas formas de redirecionamento
+      try {
+        // Método 1: window.location.href
         window.location.href = data.checkout_url;
-      } else {
-        console.error('[CHECKOUT] checkout_url não encontrada na resposta de sucesso');
+      } catch (error) {
+        console.error('[CHECKOUT] Erro no redirecionamento com window.location.href:', error);
+        try {
+          // Método 2: window.open em nova aba
+          const newWindow = window.open(data.checkout_url, '_blank');
+          if (!newWindow) {
+            throw new Error('Pop-up bloqueado');
+          }
+        } catch (error2) {
+          console.error('[CHECKOUT] Erro no redirecionamento com window.open:', error2);
+          // Método 3: Criar link temporário e clicar
+          const link = document.createElement('a');
+          link.href = data.checkout_url;
+          link.target = '_blank';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        }
       }
     },
     onError: (error: any) => {
