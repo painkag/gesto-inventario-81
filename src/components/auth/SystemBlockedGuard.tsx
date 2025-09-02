@@ -14,7 +14,7 @@ interface SystemBlockedGuardProps {
 const SystemBlockedGuard = ({ children }: SystemBlockedGuardProps) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
 
   // Rotas que podem ser acessadas sempre (sem verificação de billing)
   const publicRoutes = [
@@ -28,8 +28,20 @@ const SystemBlockedGuard = ({ children }: SystemBlockedGuardProps) => {
   const isDashboardRoute = location.pathname.startsWith('/dashboard');
   const isPublicRoute = publicRoutes.includes(location.pathname);
 
-  // Se for rota pública ou usuário não logado, não verificar billing
-  if (isPublicRoute || !user) {
+  // Aguardar inicialização do auth para evitar deadlocks
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center space-y-4">
+          <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
+          <p className="text-muted-foreground">Carregando...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Se for rota pública, sempre renderizar (sem verificação de billing)
+  if (isPublicRoute) {
     return <>{children}</>;
   }
 
