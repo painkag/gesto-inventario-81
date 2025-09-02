@@ -162,16 +162,19 @@ serve(async (req) => {
     })
 
     logStep(`Checkout session created: ${session.id}`)
-    logStep(`Redirecting to: ${session.url}`)
+    
+    const responseData = {
+      success: true,
+      checkout_url: session.url,
+      session_id: session.id,
+      plan: selectedPlan.name,
+      amount: selectedPlan.price / 100 // converter de centavos para reais
+    }
+    
+    logStep("Returning response to frontend", responseData)
 
     return new Response(
-      JSON.stringify({ 
-        success: true,
-        checkout_url: session.url,
-        session_id: session.id,
-        plan: selectedPlan.name,
-        amount: selectedPlan.price / 100 // converter de centavos para reais
-      }),
+      JSON.stringify(responseData),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200 
@@ -180,12 +183,13 @@ serve(async (req) => {
 
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error)
-    logStep("ERROR in checkout", { message: errorMessage })
+    logStep("ERROR in checkout", { message: errorMessage, stack: error instanceof Error ? error.stack : undefined })
     
     return new Response(
       JSON.stringify({ 
         success: false, 
-        error: errorMessage
+        error: errorMessage,
+        timestamp: new Date().toISOString()
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

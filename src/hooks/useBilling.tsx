@@ -150,9 +150,15 @@ export function useCheckout() {
 
   const createCheckout = useMutation({
     mutationFn: async (planType: "essential" | "professional") => {
-      if (!company?.id) throw new Error("Empresa não encontrada");
+      console.log('[CHECKOUT] Iniciando processo de checkout...');
+      console.log('[CHECKOUT] Company data:', company);
+      
+      if (!company?.id) {
+        console.error('[CHECKOUT] Company ID não encontrado');
+        throw new Error("Empresa não encontrada");
+      }
 
-      console.log('Creating checkout for company:', company.id, 'plan:', planType);
+      console.log('[CHECKOUT] Creating checkout for company:', company.id, 'plan:', planType);
       
       const { data, error } = await supabase.functions.invoke('checkout', {
         body: { 
@@ -161,26 +167,34 @@ export function useCheckout() {
         }
       });
 
-      console.log('Checkout response:', { data, error });
+      console.log('[CHECKOUT] Checkout response received:', { data, error });
       
       if (error) {
-        console.error('Checkout error:', error);
+        console.error('[CHECKOUT] Checkout error:', error);
         throw new Error(error.message || 'Erro no checkout');
       }
       
       if (!data || !data.checkout_url) {
+        console.error('[CHECKOUT] No checkout_url found in response:', data);
         throw new Error('URL de checkout não encontrada');
       }
       
+      console.log('[CHECKOUT] Checkout URL received:', data.checkout_url);
       return data;
     },
     onSuccess: (data) => {
+      console.log('[CHECKOUT] Success callback triggered, redirecting to:', data.checkout_url);
+      
       // Redirecionar diretamente para o Stripe Checkout
       if (data.checkout_url) {
+        console.log('[CHECKOUT] Executando redirecionamento...');
         window.location.href = data.checkout_url;
+      } else {
+        console.error('[CHECKOUT] checkout_url não encontrada na resposta de sucesso');
       }
     },
     onError: (error: any) => {
+      console.error('[CHECKOUT] Error callback triggered:', error);
       toast({
         title: "Erro no checkout",
         description: error.message || "Tente novamente em alguns instantes.",
