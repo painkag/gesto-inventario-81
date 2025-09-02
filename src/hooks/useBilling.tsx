@@ -49,21 +49,19 @@ export function useBilling(): BillingData & {
         };
       }
 
-      // Buscar assinatura da empresa
-      const { data: subscription, error: subError } = await supabase
-        .from("subscriptions")
-        .select("*")
-        .eq("company_id", company.id)
-        .single();
-
-      if (subError && subError.code !== 'PGRST116') {
-        throw subError;
-      }
-
-      // Buscar informação de bloqueio da empresa
+      // Buscar informações da assinatura diretamente da empresa
       const { data: companyData, error: companyError } = await supabase
         .from("companies")
-        .select("is_blocked")
+        .select(`
+          is_blocked,
+          ai_enabled,
+          plan,
+          subscription_status,
+          current_period_end,
+          stripe_customer_id,
+          stripe_subscription_id,
+          stripe_price_id_current
+        `)
         .eq("id", company.id)
         .single();
 
@@ -72,24 +70,36 @@ export function useBilling(): BillingData & {
       }
 
       const isBlocked = companyData?.is_blocked || false;
-      const aiEnabled = subscription?.ai_included || false;
-      const canAccessSystem = !isBlocked && subscription?.status === "ACTIVE";
+      const aiEnabled = companyData?.ai_enabled || false;
+      const subscriptionStatus = companyData?.subscription_status || "INACTIVE";
+      const canAccessSystem = !isBlocked && subscriptionStatus === "ACTIVE";
 
       // Calcular dias até expiração
       let daysUntilExpiry = 0;
-      if (subscription?.current_period_end) {
-        const endDate = new Date(subscription.current_period_end);
+      if (companyData?.current_period_end) {
+        const endDate = new Date(companyData.current_period_end);
         const today = new Date();
         daysUntilExpiry = Math.ceil((endDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
       }
 
       // Nome do plano para exibição
-      const planDisplayName = subscription?.plan 
-        ? (subscription.plan === "professional" ? "Profissional" : "Essencial")
+      const planDisplayName = companyData?.plan 
+        ? (companyData.plan === "professional" ? "Profissional" : "Essencial")
         : "Nenhum plano";
 
+      // Criar objeto de assinatura compatível
+      const subscription: SubscriptionData | null = companyData?.plan ? {
+        id: companyData.stripe_subscription_id || "",
+        plan: companyData.plan,
+        status: subscriptionStatus as SubscriptionStatus,
+        ai_included: aiEnabled,
+        current_period_end: companyData.current_period_end || "",
+        current_period_start: "", // Não temos mais esse campo na companies
+        created_at: "", // Não temos mais esse campo na companies
+      } : null;
+
       return {
-        subscription: subscription as SubscriptionData | null,
+        subscription,
         isBlocked,
         aiEnabled,
         canAccessSystem,
