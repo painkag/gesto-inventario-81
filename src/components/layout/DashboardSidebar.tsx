@@ -60,17 +60,17 @@ export function DashboardSidebar() {
   // Route mapping for navigation items
   const routeMap: Record<string, string> = {
     "Dashboard": "/dashboard",
-    "PDV": "/sales",
+    "PDV": "/dashboard/pdv",
     "Produção do Dia": "/production",
     "Estoque": "/inventory",
-    "Compras": "/purchases",
-    "Compras (XML)": "/purchases/import-xml",
-    "Promoções": "/promotions",
-    "Relatórios": "/reports",
+    "Compras": "/dashboard/purchases",
+    "Compras (XML)": "/dashboard/purchases/xml",
+    "Promoções": "/dashboard/promotions",
+    "Relatórios": "/dashboard/reports",
     "Comandas": "/bartabs",
     "Clube": "/club",
-    "Configurações": "/settings",
-    "Plano & Pagamentos": "/billing",
+    "Configurações": "/dashboard/settings",
+    "Plano & Pagamentos": "/dashboard/plano",
   };
 
   // Icon mapping for navigation items

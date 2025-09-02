@@ -29,6 +29,9 @@ import PaymentCanceled from "./pages/PaymentCanceled";
 import Contact from "./pages/Contact";
 import About from "./pages/About";
 import Privacy from "./pages/Privacy";
+import PDV from "./pages/PDV";
+import Promotions from "./pages/Promotions";
+import XmlImport from "./pages/XmlImport";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -90,6 +93,11 @@ const App = () => (
                   <Purchases />
                 </ProtectedRoute>
               } />
+              <Route path="/dashboard/purchases/xml" element={
+                <ProtectedRoute>
+                  <XmlImport />
+                </ProtectedRoute>
+              } />
               <Route path="/dashboard/reports" element={
                 <ProtectedRoute>
                   <Reports />
@@ -98,6 +106,16 @@ const App = () => (
               <Route path="/dashboard/movements" element={
                 <ProtectedRoute>
                   <Movements />
+                </ProtectedRoute>
+              } />
+              <Route path="/dashboard/pdv" element={
+                <ProtectedRoute>
+                  <PDV />
+                </ProtectedRoute>
+              } />
+              <Route path="/dashboard/promotions" element={
+                <ProtectedRoute>
+                  <Promotions />
                 </ProtectedRoute>
               } />
               <Route path="/dashboard/settings" element={
