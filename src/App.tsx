@@ -24,6 +24,11 @@ import Movements from "./pages/Movements";
 import Settings from "./pages/Settings";
 import Plans from "./pages/Plans";
 import CheckoutProcessing from "./pages/CheckoutProcessing";
+import PaymentSuccess from "./pages/PaymentSuccess";
+import PaymentCanceled from "./pages/PaymentCanceled";
+import Contact from "./pages/Contact";
+import About from "./pages/About";
+import Privacy from "./pages/Privacy";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -48,6 +53,9 @@ const App = () => (
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/privacy" element={<Privacy />} />
               
               {/* Onboarding route */}
               <Route path="/onboarding" element={
@@ -109,6 +117,8 @@ const App = () => (
               
               {/* Public checkout processing */}
               <Route path="/checkout-processing" element={<CheckoutProcessing />} />
+              <Route path="/payment-success" element={<PaymentSuccess />} />
+              <Route path="/payment-canceled" element={<PaymentCanceled />} />
               
               {/* Catch-all route */}
               <Route path="*" element={<NotFound />} />
