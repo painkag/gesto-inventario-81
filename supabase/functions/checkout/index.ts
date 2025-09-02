@@ -32,7 +32,7 @@ serve(async (req) => {
     // Get environment variables
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    const stripeSecretKey = Deno.env.get('STRIPE_SECRET_KEY')!
+    const stripeSecretKey = Deno.env.get('Chave secreta stripe')!
     const priceIdNoAi = Deno.env.get('id do produto de 300 reais')!
     const priceIdWithAi = Deno.env.get('id do produto de 500 reais')!
 

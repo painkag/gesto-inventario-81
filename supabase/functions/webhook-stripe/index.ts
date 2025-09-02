@@ -15,7 +15,7 @@ serve(async (req) => {
   try {
     logStep("Webhook received")
 
-    const stripeSecretKey = Deno.env.get('STRIPE_SECRET_KEY')!
+    const stripeSecretKey = Deno.env.get('Chave secreta stripe')!
     const webhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET')!
     
     if (!stripeSecretKey || !webhookSecret) {
