@@ -1,74 +1,9 @@
 {
   "name": "Estoque Manager",
-  "short_name": "Estoque Manager",
-  "description": "Sistema completo de gestão de estoque para pequenas e médias empresas",
-  "start_url": "/",
+  "short_name": "EstoqueMgr",
+  "start_url": "/sales",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#10b981", 
-  "orientation": "portrait",
-  "scope": "/",
-  "lang": "pt-BR",
-  "icons": [
-    {
-      "src": "/favicon.ico",
-      "sizes": "48x48",
-      "type": "image/x-icon"
-    },
-    {
-      "src": "/placeholder.svg",
-      "sizes": "192x192",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/placeholder.svg", 
-      "sizes": "512x512",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
-    }
-  ],
-  "categories": ["business", "productivity", "utilities"],
-  "screenshots": [
-    {
-      "src": "/placeholder.svg",
-      "sizes": "1280x720",
-      "type": "image/svg+xml",
-      "form_factor": "wide"
-    },
-    {
-      "src": "/placeholder.svg", 
-      "sizes": "720x1280",
-      "type": "image/svg+xml",
-      "form_factor": "narrow"
-    }
-  ],
-  "related_applications": [],
-  "prefer_related_applications": false,
-  "shortcuts": [
-    {
-      "name": "Nova Venda",
-      "short_name": "Venda",
-      "description": "Iniciar nova venda rapidamente",
-      "url": "/dashboard/sales",
-      "icons": [
-        {
-          "src": "/placeholder.svg",
-          "sizes": "96x96"
-        }
-      ]
-    },
-    {
-      "name": "Estoque",
-      "short_name": "Estoque", 
-      "description": "Verificar estoque atual",
-      "url": "/dashboard/inventory",
-      "icons": [
-        {
-          "src": "/placeholder.svg",
-          "sizes": "96x96"
-        }
-      ]
-    }
-  ]
+  "theme_color": "#000000",
+  "icons": []
 }
