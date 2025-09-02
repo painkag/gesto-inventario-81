@@ -1,7 +1,6 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
@@ -42,10 +41,17 @@ const queryClient = new QueryClient({
   },
 });
 
-const App: React.FC = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TooltipProvider>
+const App: React.FC = () => {
+  // Service Worker registration (client-side only)
+  useEffect(() => {
+    if (typeof window !== "undefined" && "serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sw.js").catch(() => {});
+    }
+  }, []);
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
         <Toaster />
         <Sonner />
         <BrowserRouter>
@@ -143,9 +149,9 @@ const App: React.FC = () => (
             </Routes>
           </SystemBlockedGuard>
         </BrowserRouter>
-      </TooltipProvider>
-    </AuthProvider>
-  </QueryClientProvider>
-);
+      </AuthProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;
