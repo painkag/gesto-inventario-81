@@ -34,18 +34,15 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { cn } from "@/lib/utils";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useCompany } from "@/hooks/useCompany";
-import { useFeatureFlags } from "@/hooks/useFeatureFlags";
-import { navRouteMap } from "@/config/sectors";
+import { deriveFeatures, deriveNav, hasFeature } from "@/config/sectorUtils";
 
 export function DashboardSidebar() {
   const { state } = useSidebar();
   const location = useLocation();
   const { canAccessSettings } = usePermissions();
   const { data: company } = useCompany();
-  const { getSectorNavigation } = useFeatureFlags();
   const [isManagementOpen, setIsManagementOpen] = useState(true);
   const [isReportsOpen, setIsReportsOpen] = useState(true);
-  const [isSectorOpen, setIsSectorOpen] = useState(true);
 
   const isCollapsed = state === "collapsed";
   const isActive = (path: string) => location.pathname === path;
@@ -55,29 +52,48 @@ export function DashboardSidebar() {
       ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium" 
       : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground";
 
-  // Get sector-specific navigation
-  const sectorNav = getSectorNavigation();
-  
-  // Map navigation items to routes and icons
-  const getNavItems = () => {
-    const iconMap: Record<string, any> = {
-      "Dashboard": Home,
-      "PDV": ShoppingCart,
-      "Produção do Dia": UtensilsCrossed,
-      "Estoque": Archive,
-      "Compras": Truck,
-      "Compras (XML)": FileText,
-      "Promoções": BarChart3,
-      "Comandas": Wine,
-      "Clube": Users,
-      "Relatórios": BarChart3,
-      "Configurações": Settings,
-      "Plano & Pagamentos": CreditCard
-    };
+  // Dynamic sector-based navigation
+  const sector = (company?.sector ?? "mercadinho") as any;
+  const features = deriveFeatures(sector, company?.sector_features || []);
+  const nav = deriveNav(sector);
 
-    return sectorNav.map(navItem => ({
+  // Route mapping for navigation items
+  const routeMap: Record<string, string> = {
+    "Dashboard": "/dashboard",
+    "PDV": "/sales",
+    "Produção do Dia": "/production",
+    "Estoque": "/inventory",
+    "Compras": "/purchases",
+    "Compras (XML)": "/purchases/import-xml",
+    "Promoções": "/promotions",
+    "Relatórios": "/reports",
+    "Comandas": "/bartabs",
+    "Clube": "/club",
+    "Configurações": "/settings",
+    "Plano & Pagamentos": "/billing",
+  };
+
+  // Icon mapping for navigation items
+  const iconMap: Record<string, any> = {
+    "Dashboard": Home,
+    "PDV": ShoppingCart,
+    "Produção do Dia": UtensilsCrossed,
+    "Estoque": Archive,
+    "Compras": Truck,
+    "Compras (XML)": FileText,
+    "Promoções": BarChart3,
+    "Comandas": Wine,
+    "Clube": Users,
+    "Relatórios": BarChart3,
+    "Configurações": Settings,
+    "Plano & Pagamentos": CreditCard
+  };
+
+  // Generate navigation items from sector configuration
+  const getNavItems = () => {
+    return nav.map(navItem => ({
       title: navItem,
-      url: navRouteMap[navItem as keyof typeof navRouteMap] || "/dashboard",
+      url: routeMap[navItem] || "/dashboard",
       icon: iconMap[navItem] || Home
     }));
   };
