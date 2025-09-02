@@ -1,9 +1,0 @@
-{
-  "name": "Estoque Manager",
-  "short_name": "EstoqueMgr",
-  "start_url": "/sales",
-  "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#000000",
-  "icons": []
-}

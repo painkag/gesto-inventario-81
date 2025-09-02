@@ -2,7 +2,6 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PurchaseForm } from "@/components/purchases/PurchaseForm";
 import { PurchasesTable } from "@/components/purchases/PurchasesTable";
-import { XmlImportDialog } from "@/components/purchases/XmlImportDialog";
 import { usePurchases } from "@/hooks/usePurchases";
 import { ShoppingBag, TrendingUp, Package, DollarSign } from "lucide-react";
 
@@ -39,10 +38,7 @@ const Purchases = () => {
         {/* Header */}
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold">Gestão de Compras</h1>
-          <div className="flex gap-2">
-            <XmlImportDialog />
-            <PurchaseForm />
-          </div>
+          <PurchaseForm />
         </div>
 
         {/* Estatísticas */}

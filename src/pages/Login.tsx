@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Package, ArrowLeft, AlertCircle, Eye, EyeOff } from "lucide-react";
+import { Package, ArrowLeft, AlertCircle } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useBlueToast } from "@/hooks/useBlueToast";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,7 +12,6 @@ const Login = () => {
   const { showSuccess, showError } = useBlueToast();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -165,32 +164,16 @@ const Login = () => {
               
               <div className="space-y-2">
                 <Label htmlFor="password">Senha</Label>
-                <div className="relative">
-                  <Input
-                    id="password"
-                    name="password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="••••••••"
-                    value={formData.password}
-                    onChange={handleInputChange}
-                    className={`h-11 pr-10 ${errors.password ? 'border-destructive' : ''}`}
-                    disabled={isLoading}
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                    onClick={() => setShowPassword(!showPassword)}
-                    disabled={isLoading}
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4 text-muted-foreground" />
-                    ) : (
-                      <Eye className="h-4 w-4 text-muted-foreground" />
-                    )}
-                  </Button>
-                </div>
+                <Input
+                  id="password"
+                  name="password"
+                  type="password"
+                  placeholder="••••••••"
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  className={`h-11 ${errors.password ? 'border-destructive' : ''}`}
+                  disabled={isLoading}
+                />
                 {errors.password && (
                   <div className="flex items-center space-x-2 text-sm text-destructive">
                     <AlertCircle className="h-4 w-4" />

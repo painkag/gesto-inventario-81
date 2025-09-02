@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useNavigate } from "react-router-dom";
-import { Plus, Minus, Search, ShoppingCart, ScanLine } from "lucide-react";
+import { Plus, Minus, Search, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -36,7 +36,6 @@ import { useProducts } from "@/hooks/useProducts";
 import { useSales } from "@/hooks/useSales";
 import { useInventory } from "@/hooks/useInventory";
 import { useBlueToast } from "@/hooks/useBlueToast";
-import BarcodeScanner from "@/components/scanner/BarcodeScanner";
 
 const saleSchema = z.object({
   customer_name: z.string().optional(),
@@ -60,7 +59,6 @@ export function SaleForm() {
   const [items, setItems] = useState<SaleItem[]>([]);
   const [productSearch, setProductSearch] = useState("");
   const [showProductSearch, setShowProductSearch] = useState(false);
-  const [showScanner, setShowScanner] = useState(false);
 
   const navigate = useNavigate();
   const { showSuccess, showError } = useBlueToast();
@@ -243,28 +241,16 @@ export function SaleForm() {
             <CardHeader>
               <CardTitle className="text-base flex justify-between items-center">
                 Produtos
-                <div className="flex gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowProductSearch(true)}
-                    className="gap-2"
-                  >
-                    <Plus className="h-4 w-4" />
-                    Adicionar Produto
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowScanner(true)}
-                    className="gap-2"
-                  >
-                    <ScanLine className="h-4 w-4" />
-                    Scanner
-                  </Button>
-                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowProductSearch(true)}
+                  className="gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  Adicionar Produto
+                </Button>
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -476,38 +462,6 @@ export function SaleForm() {
             </Card>
           )}
         </form>
-
-        {/* Barcode Scanner */}
-        <BarcodeScanner
-          open={showScanner}
-          onOpenChange={setShowScanner}
-          onScanSuccess={async (barcode) => {
-            console.log('Barcode scanned:', barcode);
-            
-            // Look up product by barcode
-            const product = products?.find(p => p.code === barcode);
-            if (product) {
-              addProduct(product);
-              showSuccess(
-                "Produto adicionado!",
-                `${product.name} foi adicionado à venda.`
-              );
-            } else {
-              showError(
-                "Produto não encontrado",
-                `Código ${barcode} não foi encontrado no sistema.`
-              );
-            }
-            setShowScanner(false);
-          }}
-          onError={(error) => {
-            console.error('Scanner error:', error);
-            showError(
-              "Erro no scanner",
-              "Erro ao acessar a câmera ou processar o código."
-            );
-          }}
-        />
       </DialogContent>
     </Dialog>
   );

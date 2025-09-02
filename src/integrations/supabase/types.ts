@@ -75,8 +75,6 @@ export type Database = {
           name: string
           phone: string | null
           plan: string
-          sector: string | null
-          sector_features: Json | null
           state: string | null
           stripe_customer_id: string | null
           stripe_price_id_current: string | null
@@ -102,8 +100,6 @@ export type Database = {
           name: string
           phone?: string | null
           plan?: string
-          sector?: string | null
-          sector_features?: Json | null
           state?: string | null
           stripe_customer_id?: string | null
           stripe_price_id_current?: string | null
@@ -129,8 +125,6 @@ export type Database = {
           name?: string
           phone?: string | null
           plan?: string
-          sector?: string | null
-          sector_features?: Json | null
           state?: string | null
           stripe_customer_id?: string | null
           stripe_price_id_current?: string | null
@@ -756,13 +750,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      consume_fefo: {
-        Args: { p_company: string; p_product: string; p_qty: number }
-        Returns: {
-          batch_id: string
-          qty_consumed: number
-        }[]
-      }
       get_product_stock: {
         Args:
           | { comp_id: string; product_uuid: string }

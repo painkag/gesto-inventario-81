@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Package, Menu, X } from "lucide-react";
-import React, { useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 

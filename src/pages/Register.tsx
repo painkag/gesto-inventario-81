@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -121,12 +121,6 @@ const Register = () => {
           confirmPassword: "",
           companyName: ""
         });
-
-        // Redirecionar para onboarding após registro bem-sucedido
-        // Aguardar um momento para mostrar o toast
-        setTimeout(() => {
-          window.location.href = '/onboarding';
-        }, 1500);
       }
     } catch (error: any) {
       toast({

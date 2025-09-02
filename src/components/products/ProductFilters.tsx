@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Search, X } from "lucide-react";
-import React, { useState } from "react";
+import { useState } from "react";
 import type { Database } from "@/integrations/supabase/types";
 
 type Product = Database["public"]["Tables"]["products"]["Row"];
