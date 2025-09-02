@@ -21,7 +21,7 @@ serve(async (req) => {
   try {
     logStep("Function started")
 
-    const stripeSecretKey = Deno.env.get('Chave secreta stripe')!
+    const stripeSecretKey = Deno.env.get('STRIPE_SECRET_KEY')!
     
     if (!stripeSecretKey) {
       throw new Error('Stripe secret key not configured')

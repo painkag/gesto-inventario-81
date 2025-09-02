@@ -33,6 +33,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { useProducts } from "@/hooks/useProducts";
 import { usePurchases } from "@/hooks/usePurchases";
+import { useDocumentMask } from "@/hooks/useDocumentMask";
 
 const purchaseSchema = z.object({
   supplier_name: z.string().min(1, "Nome do fornecedor é obrigatório"),
@@ -59,6 +60,7 @@ export function PurchaseForm() {
 
   const { products } = useProducts();
   const { createPurchase, isCreating } = usePurchases();
+  const documentMask = useDocumentMask();
 
   const form = useForm<PurchaseFormData>({
     resolver: zodResolver(purchaseSchema),
@@ -159,6 +161,7 @@ export function PurchaseForm() {
     // Reset form
     form.reset();
     setItems([]);
+    documentMask.reset();
     setOpen(false);
   };
 
@@ -207,7 +210,11 @@ export function PurchaseForm() {
                 <Input
                   id="supplier_document"
                   placeholder="CNPJ ou CPF (opcional)"
-                  {...form.register("supplier_document")}
+                  value={documentMask.value}
+                  onChange={(e) => {
+                    const formatted = documentMask.handleChange(e.target.value);
+                    form.setValue("supplier_document", formatted);
+                  }}
                 />
               </div>
             </CardContent>

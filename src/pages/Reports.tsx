@@ -2,7 +2,7 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useReports } from "@/hooks/useReports";
-import { MonthlyChart } from "@/components/reports/MonthlyChart";
+import { ModernChart } from "@/components/reports/ModernChart";
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -196,7 +196,7 @@ const Reports = () => {
 
         {/* Análise de BI Mensal */}
         {monthlyAnalysis?.monthlyData && monthlyAnalysis.monthlyData.length > 0 && (
-          <MonthlyChart data={monthlyAnalysis.monthlyData} />
+          <ModernChart data={monthlyAnalysis.monthlyData} />
         )}
 
         {/* Vendas por Categoria */}

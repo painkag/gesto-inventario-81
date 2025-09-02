@@ -43,7 +43,9 @@ export function SubscriptionStatusCard({ onManageSubscription }: SubscriptionSta
         return {
           icon: <CheckCircle className="h-4 w-4 text-green-600" />,
           title: "Pagamento em dia",
-          description: `Sua assinatura está ativa${daysUntilExpiry ? ` e renova em ${daysUntilExpiry} dias` : ''}`,
+          description: daysUntilExpiry && subscriptionData?.current_period_end 
+            ? `Próxima cobrança em ${daysUntilExpiry} dias (${new Date(subscriptionData.current_period_end).toLocaleDateString('pt-BR')})` 
+            : 'Sua assinatura está ativa',
           variant: "default" as const,
           color: "bg-green-50 border-green-200",
           badgeColor: "bg-green-100 text-green-800"

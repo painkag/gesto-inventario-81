@@ -137,8 +137,8 @@ export function usePurchases() {
             company_id: company.id,
             product_id: item.product_id,
             quantity: item.quantity,
-            cost: item.unit_cost,
-            expiration_date: item.expiration_date || null,
+            cost_price: item.unit_cost,
+            expiry_date: item.expiration_date || null,
           });
 
         if (batchError) throw batchError;
