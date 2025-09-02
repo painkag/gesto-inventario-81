@@ -23,7 +23,7 @@ import { Switch } from "@/components/ui/switch";
 import { productSchema, type ProductFormData } from "@/lib/validations/product";
 import { useProducts } from "@/hooks/useProducts";
 import { Plus } from "lucide-react";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import type { Database } from "@/integrations/supabase/types";
 
 type Product = Database["public"]["Tables"]["products"]["Row"];

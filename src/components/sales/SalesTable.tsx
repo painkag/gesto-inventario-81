@@ -31,7 +31,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useSales } from "@/hooks/useSales";
 import { useCompany } from "@/hooks/useCompany";
-import { useState } from "react";
+import React, { useState } from "react";
 import { viewReceiptHTML, printReceipt, downloadReceiptPDF } from "@/utils/pdfGenerator";
 import { useToast } from "@/hooks/use-toast";
 

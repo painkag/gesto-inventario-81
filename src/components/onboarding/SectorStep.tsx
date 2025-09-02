@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { sectorPresets, type SectorKey } from "@/config/sectors";
 import { supabase } from "@/integrations/supabase/client";
 import { useCompany } from "@/hooks/useCompany";
