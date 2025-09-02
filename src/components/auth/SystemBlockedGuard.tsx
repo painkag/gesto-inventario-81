@@ -44,9 +44,15 @@ const SystemBlockedGuard = ({ children }: SystemBlockedGuardProps) => {
 
 // Componente que só roda verificação de billing quando necessário
 const DashboardGuard = ({ children }: { children: ReactNode }) => {
-  const { isBlocked, isLoading, planDisplayName } = useBilling();
+  const { subscriptionData, isPastDue, isActive, isLoading, hasSystemAccess } = useBilling();
   const location = useLocation();
   const navigate = useNavigate();
+  
+  // Determinar se está bloqueado (sem acesso ao sistema)
+  const isBlocked = !hasSystemAccess;
+  const planDisplayName = subscriptionData?.plan 
+    ? (subscriptionData.plan === "professional" ? "Profissional" : "Essencial")
+    : "Nenhum plano";
   
   // Rotas do dashboard que podem ser acessadas mesmo bloqueado
   const allowedWhenBlocked = ['/dashboard/plano'];

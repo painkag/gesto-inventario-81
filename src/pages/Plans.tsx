@@ -21,16 +21,25 @@ import { useBilling, useCheckout } from "@/hooks/useBilling";
 
 const Plans = () => {
   const { 
-    subscription, 
-    isBlocked, 
-    aiEnabled, 
-    planDisplayName, 
+    subscriptionData, 
+    subscriptionStatus,
+    isActive,
+    isPending,
+    isPastDue,
     daysUntilExpiry,
+    hasSystemAccess,
     isLoading 
   } = useBilling();
   
   const { createCheckout, openCustomerPortal, triggerWebhook, isCreatingCheckout, isOpeningPortal, isTriggeringWebhook } = useCheckout();
   const [showDebug, setShowDebug] = useState(false);
+
+  // Propriedades derivadas para compatibilidade
+  const isBlocked = !hasSystemAccess;
+  const aiEnabled = subscriptionData?.ai_enabled || false;
+  const planDisplayName = subscriptionData?.plan 
+    ? (subscriptionData.plan === "professional" ? "Profissional" : "Essencial")
+    : "Nenhum plano";
 
   // Definir planos disponíveis
   const plans = [
@@ -70,8 +79,8 @@ const Plans = () => {
     }
   ];
 
-  const currentPlan = plans.find(p => p.id === subscription?.plan);
-  const isActivePlan = (planId: string) => subscription?.plan === planId && subscription?.status === "ACTIVE";
+  const currentPlan = plans.find(p => p.id === subscriptionData?.plan);
+  const isActivePlan = (planId: string) => subscriptionData?.plan === planId && isActive;
 
   const handleSubscribe = (planType: "essential" | "professional") => {
     createCheckout.mutate(planType);
@@ -112,7 +121,7 @@ const Plans = () => {
           </Alert>
         )}
 
-        {subscription?.status === "ACTIVE" && daysUntilExpiry <= 7 && (
+        {subscriptionStatus === "ACTIVE" && daysUntilExpiry && daysUntilExpiry <= 7 && (
           <Alert>
             <Calendar className="h-4 w-4" />
             <AlertDescription>
@@ -147,25 +156,31 @@ const Plans = () => {
               <div className="space-y-2">
                 <p className="text-sm font-medium text-muted-foreground">Status</p>
                 <div className="flex items-center gap-2">
-                  {subscription?.status === "ACTIVE" && (
+                  {subscriptionStatus === "ACTIVE" && (
                     <>
                       <CheckCircle2 className="h-4 w-4 text-green-500" />
                       <span className="text-green-600 font-medium">Ativo</span>
                     </>
                   )}
-                  {subscription?.status === "PAST_DUE" && (
+                  {subscriptionStatus === "PENDING" && (
+                    <>
+                      <AlertTriangle className="h-4 w-4 text-yellow-500" />
+                      <span className="text-yellow-600 font-medium">Pendente</span>
+                    </>
+                  )}
+                  {subscriptionStatus === "PAST_DUE" && (
                     <>
                       <XCircle className="h-4 w-4 text-red-500" />
                       <span className="text-red-600 font-medium">Vencido</span>
                     </>
                   )}
-                  {subscription?.status === "CANCELED" && (
+                  {subscriptionStatus === "CANCELED" && (
                     <>
                       <XCircle className="h-4 w-4 text-gray-500" />
                       <span className="text-gray-600 font-medium">Cancelado</span>
                     </>
                   )}
-                  {!subscription && (
+                  {subscriptionStatus === "INACTIVE" && (
                     <>
                       <AlertTriangle className="h-4 w-4 text-yellow-500" />
                       <span className="text-yellow-600 font-medium">Sem plano</span>
@@ -177,18 +192,18 @@ const Plans = () => {
               <div className="space-y-2">
                 <p className="text-sm font-medium text-muted-foreground">Próxima Cobrança</p>
                 <p className="font-medium">
-                  {subscription?.current_period_end 
-                    ? new Date(subscription.current_period_end).toLocaleDateString('pt-BR')
+                  {subscriptionData?.current_period_end 
+                    ? new Date(subscriptionData.current_period_end).toLocaleDateString('pt-BR')
                     : "N/A"
                   }
                 </p>
               </div>
             </div>
 
-            {subscription?.status === "PAST_DUE" && (
+            {subscriptionStatus === "PAST_DUE" && (
               <div className="mt-4 space-y-2">
                 <Button 
-                  onClick={() => handleSubscribe(subscription.plan as "essential" | "professional")}
+                  onClick={() => handleSubscribe(subscriptionData?.plan as "essential" | "professional")}
                   disabled={isCreatingCheckout}
                   className="gap-2"
                   variant="destructive"
@@ -199,7 +214,7 @@ const Plans = () => {
               </div>
             )}
 
-            {subscription?.status === "ACTIVE" && (
+            {subscriptionStatus === "ACTIVE" && (
               <div className="mt-4">
                 <Button 
                   onClick={() => openCustomerPortal.mutate()}

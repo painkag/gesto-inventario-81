@@ -149,14 +149,16 @@ serve(async (req) => {
       success_url: `${origin}/dashboard/plano?session_id={CHECKOUT_SESSION_ID}&success=true`,
       cancel_url: `${origin}/dashboard/plano?canceled=true`,
       metadata: {
-        company_id: company_id,
-        plan: plan
+        companyId: company_id, // Consistente com o webhook
+        priceId: priceId,
+        productId: "", // Pode ser obtido do price se necessário
+        plan_type: plan
       },
       subscription_data: {
         trial_period_days: 7,
         metadata: {
-          company_id: company_id,
-          plan: plan
+          companyId: company_id, // Consistente com o webhook
+          plan_type: plan
         }
       }
     })

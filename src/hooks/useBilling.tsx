@@ -2,142 +2,186 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCompany } from "./useCompany";
 import { useToast } from "./use-toast";
-import type { Database } from "@/integrations/supabase/types";
 
-type SubscriptionRow = Database["public"]["Tables"]["subscriptions"]["Row"];
-type SubscriptionStatus = "ACTIVE" | "PAST_DUE" | "CANCELED" | "TRIALING";
-
-export interface SubscriptionData {
-  id: string;
-  plan: string;
-  status: SubscriptionStatus;
-  ai_included: boolean;
-  current_period_end: string;
-  current_period_start: string;
-  created_at: string;
+interface SubscriptionData {
+  plan: string | null;
+  trial_ends_at: string | null;
+  current_period_end: string | null;
+  ai_enabled: boolean;
+  is_blocked: boolean;
 }
 
-export interface BillingData {
-  subscription: SubscriptionData | null;
-  isBlocked: boolean;
-  aiEnabled: boolean;
-  canAccessSystem: boolean;
-  planDisplayName: string;
-  daysUntilExpiry: number;
+interface BillingData {
+  subscriptionData: SubscriptionData | null;
+  isLoading: boolean;
+  error: any;
+  daysUntilExpiry: number | null;
+  hasSystemAccess: boolean;
+  refreshSubscription: () => void;
+  subscriptionStatus: string;
+  isActive: boolean;
+  isPending: boolean;
+  isPastDue: boolean;
 }
 
 // Hook para gerenciar assinatura e billing
-export function useBilling(): BillingData & {
-  isLoading: boolean;
-  error: any;
-  refreshSubscription: () => void;
-} {
+export function useBilling() {
   const { data: company } = useCompany();
-  const queryClient = useQueryClient();
-
-  const subscriptionQuery = useQuery({
-    queryKey: ["subscription", company?.id],
+  
+  const query = useQuery({
+    queryKey: ["billing", company?.id],
     queryFn: async (): Promise<BillingData> => {
       if (!company?.id) {
         return {
-          subscription: null,
-          isBlocked: true,
-          aiEnabled: false,
-          canAccessSystem: false,
-          planDisplayName: "Nenhum plano",
-          daysUntilExpiry: 0,
+          subscriptionData: null,
+          isLoading: false,
+          error: null,
+          daysUntilExpiry: null,
+          hasSystemAccess: false,
+          refreshSubscription: () => {},
+          subscriptionStatus: 'INACTIVE',
+          isActive: false,
+          isPending: false,
+          isPastDue: false,
         };
       }
 
-      // Buscar informações da assinatura diretamente da empresa
-      const { data: companyData, error: companyError } = await supabase
-        .from("companies")
-        .select(`
-          is_blocked,
-          ai_enabled,
-          plan,
-          subscription_status,
-          current_period_end,
-          stripe_customer_id,
-          stripe_subscription_id,
-          stripe_price_id_current
-        `)
-        .eq("id", company.id)
-        .single();
+      try {
+        console.log('[BILLING] Fetching billing data for company:', company.id);
+        
+        // Buscar dados da empresa com novos campos
+        const { data: companyData, error: companyError } = await supabase
+          .from("companies")
+          .select(`
+            *,
+            subscriptions (*)
+          `)
+          .eq("id", company.id)
+          .single();
 
-      if (companyError) {
-        throw companyError;
+        if (companyError) {
+          console.error('[BILLING] Error fetching company data:', companyError);
+          throw companyError;
+        }
+
+        if (!companyData) {
+          console.warn('[BILLING] No company data found');
+          return {
+            subscriptionData: null,
+            isLoading: false,
+            error: null,
+            daysUntilExpiry: null,
+            hasSystemAccess: false,
+            refreshSubscription: () => {},
+            subscriptionStatus: 'INACTIVE',
+            isActive: false,
+            isPending: false,
+            isPastDue: false,
+          };
+        }
+
+        console.log('[BILLING] Company data:', companyData);
+
+        const now = new Date();
+        const trialEndsAt = companyData.trial_ends_at ? new Date(companyData.trial_ends_at) : null;
+        const currentPeriodEnd = companyData.current_period_end ? new Date(companyData.current_period_end) : null;
+        const isBlocked = companyData.is_blocked || false;
+        const subscriptionStatus = companyData.subscription_status || 'INACTIVE';
+
+        // Status helpers
+        const isActive = subscriptionStatus === 'ACTIVE';
+        const isPending = subscriptionStatus === 'PENDING';
+        const isPastDue = subscriptionStatus === 'PAST_DUE';
+
+        // Determinar se tem acesso ao sistema baseado no novo status
+        let hasSystemAccess = true;
+        let daysUntilExpiry: number | null = null;
+
+        if (isBlocked || isPastDue) {
+          hasSystemAccess = false;
+        } else if (isActive && currentPeriodEnd && currentPeriodEnd > now) {
+          // Tem assinatura ativa
+          hasSystemAccess = true;
+          daysUntilExpiry = Math.ceil((currentPeriodEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+        } else if (isPending) {
+          // Pagamento pendente - dar acesso temporário por alguns dias
+          hasSystemAccess = true;
+          daysUntilExpiry = 3; // 3 dias de graça para processar pagamento
+        } else if (trialEndsAt && trialEndsAt > now) {
+          // Em período de trial
+          hasSystemAccess = true;
+          daysUntilExpiry = Math.ceil((trialEndsAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+        } else {
+          // Sem acesso
+          hasSystemAccess = false;
+        }
+
+        const subscriptionData: SubscriptionData = {
+          plan: companyData.plan || 'trial',
+          trial_ends_at: companyData.trial_ends_at,
+          current_period_end: companyData.current_period_end,
+          ai_enabled: companyData.ai_enabled || false,
+          is_blocked: isBlocked,
+        };
+
+        return {
+          subscriptionData,
+          isLoading: false,
+          error: null,
+          daysUntilExpiry,
+          hasSystemAccess,
+          refreshSubscription: () => {},
+          subscriptionStatus,
+          isActive,
+          isPending,
+          isPastDue,
+        };
+      } catch (error) {
+        console.error('[BILLING] Error in billing query:', error);
+        return {
+          subscriptionData: null,
+          isLoading: false,
+          error,
+          daysUntilExpiry: null,
+          hasSystemAccess: false,
+          refreshSubscription: () => {},
+          subscriptionStatus: 'INACTIVE',
+          isActive: false,
+          isPending: false,
+          isPastDue: false,
+        };
       }
-
-      const isBlocked = companyData?.is_blocked || false;
-      const aiEnabled = companyData?.ai_enabled || false;
-      const subscriptionStatus = companyData?.subscription_status || "INACTIVE";
-      const canAccessSystem = !isBlocked && subscriptionStatus === "ACTIVE";
-
-      // Calcular dias até expiração
-      let daysUntilExpiry = 0;
-      if (companyData?.current_period_end) {
-        const endDate = new Date(companyData.current_period_end);
-        const today = new Date();
-        daysUntilExpiry = Math.ceil((endDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-      }
-
-      // Nome do plano para exibição
-      const planDisplayName = companyData?.plan 
-        ? (companyData.plan === "professional" ? "Profissional" : "Essencial")
-        : "Nenhum plano";
-
-      // Criar objeto de assinatura compatível
-      const subscription: SubscriptionData | null = companyData?.plan ? {
-        id: companyData.stripe_subscription_id || "",
-        plan: companyData.plan,
-        status: subscriptionStatus as SubscriptionStatus,
-        ai_included: aiEnabled,
-        current_period_end: companyData.current_period_end || "",
-        current_period_start: "", // Não temos mais esse campo na companies
-        created_at: "", // Não temos mais esse campo na companies
-      } : null;
-
-      return {
-        subscription,
-        isBlocked,
-        aiEnabled,
-        canAccessSystem,
-        planDisplayName,
-        daysUntilExpiry,
-      };
     },
     enabled: !!company?.id,
-    refetchInterval: 30000, // Atualizar a cada 30 segundos
+    staleTime: 30000, // 30 segundos
+    refetchInterval: 60000, // 1 minuto
   });
 
-  const refreshSubscription = () => {
-    queryClient.invalidateQueries({ queryKey: ["subscription", company?.id] });
-  };
-
   return {
-    ...subscriptionQuery.data || {
-      subscription: null,
-      isBlocked: true,
-      aiEnabled: false,
-      canAccessSystem: false,
-      planDisplayName: "Nenhum plano",
-      daysUntilExpiry: 0,
+    subscriptionData: query.data?.subscriptionData || null,
+    isLoading: query.isLoading,
+    error: query.error,
+    daysUntilExpiry: query.data?.daysUntilExpiry || null,
+    hasSystemAccess: query.data?.hasSystemAccess || false,
+    subscriptionStatus: query.data?.subscriptionStatus || 'INACTIVE',
+    isActive: query.data?.isActive || false,
+    isPending: query.data?.isPending || false,
+    isPastDue: query.data?.isPastDue || false,
+    refreshSubscription: () => {
+      console.log('[BILLING] Manual refresh triggered');
+      query.refetch();
     },
-    isLoading: subscriptionQuery.isLoading,
-    error: subscriptionQuery.error,
-    refreshSubscription,
   };
 }
 
 // Hook para controlar recursos de IA
 export function useAiEnabled() {
-  const { aiEnabled, isLoading } = useBilling();
+  const { subscriptionData, isLoading } = useBilling();
   
   return {
-    aiEnabled,
+    aiEnabled: subscriptionData?.ai_enabled || false,
     isLoading,
-    showAiFeature: (fallback?: React.ReactNode) => aiEnabled,
+    showAiFeature: (fallback?: React.ReactNode) => subscriptionData?.ai_enabled || false,
     aiBlockedMessage: "Este recurso está disponível apenas no plano Profissional"
   };
 }
@@ -295,7 +339,7 @@ export function useCheckout() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["subscription", company?.id] });
+      queryClient.invalidateQueries({ queryKey: ["billing", company?.id] });
       toast({
         title: "Status atualizado",
         description: "O status da assinatura foi atualizado com sucesso.",
