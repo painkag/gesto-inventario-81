@@ -196,30 +196,43 @@ export function useCheckout() {
         return;
       }
 
-      console.log('[CHECKOUT] Redirecionando para:', data.checkout_url);
+      console.log('[CHECKOUT] Abrindo Stripe Checkout em nova aba:', data.checkout_url);
       
-      // Tentar múltiplas formas de redirecionamento
-      try {
-        // Método 1: window.location.href
-        window.location.href = data.checkout_url;
-      } catch (error) {
-        console.error('[CHECKOUT] Erro no redirecionamento com window.location.href:', error);
-        try {
-          // Método 2: window.open em nova aba
-          const newWindow = window.open(data.checkout_url, '_blank');
-          if (!newWindow) {
-            throw new Error('Pop-up bloqueado');
+      // Mostrar instrução para o usuário
+      toast({
+        title: "Redirecionando para pagamento",
+        description: "Uma nova aba será aberta com o checkout do Stripe",
+      });
+
+      // Sempre abrir em nova aba - mais confiável para checkouts externos
+      const newWindow = window.open(data.checkout_url, '_blank', 'noopener,noreferrer');
+      
+      if (!newWindow || newWindow.closed) {
+        // Pop-up foi bloqueado - mostrar fallback
+        console.warn('[CHECKOUT] Pop-up bloqueado, mostrando fallback');
+        toast({
+          title: "Pop-up bloqueado",
+          description: "Clique no link abaixo para acessar o pagamento",
+          variant: "destructive",
+        });
+        
+        // Criar link de fallback
+        const link = document.createElement('a');
+        link.href = data.checkout_url;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        link.textContent = 'Abrir checkout do Stripe';
+        link.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 9999; background: #007bff; color: white; padding: 10px 20px; border-radius: 5px; text-decoration: none; font-weight: bold;';
+        document.body.appendChild(link);
+        
+        // Remover o link após 10 segundos
+        setTimeout(() => {
+          if (document.body.contains(link)) {
+            document.body.removeChild(link);
           }
-        } catch (error2) {
-          console.error('[CHECKOUT] Erro no redirecionamento com window.open:', error2);
-          // Método 3: Criar link temporário e clicar
-          const link = document.createElement('a');
-          link.href = data.checkout_url;
-          link.target = '_blank';
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-        }
+        }, 10000);
+      } else {
+        console.log('[CHECKOUT] Nova aba aberta com sucesso');
       }
     },
     onError: (error: any) => {
