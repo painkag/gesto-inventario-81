@@ -121,6 +121,12 @@ const Register = () => {
           confirmPassword: "",
           companyName: ""
         });
+
+        // Redirecionar para onboarding após registro bem-sucedido
+        // Aguardar um momento para mostrar o toast
+        setTimeout(() => {
+          window.location.href = '/onboarding';
+        }, 1500);
       }
     } catch (error: any) {
       toast({

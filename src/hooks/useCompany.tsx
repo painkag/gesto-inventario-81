@@ -13,6 +13,8 @@ interface CompanyWithRole {
     phone: string | null;
     plan: string | null;
     trial_ends_at: string | null;
+    sector?: 'padaria' | 'mercadinho' | 'adega' | null;
+    sector_features?: string[] | null;
   } | null;
   role: UserRole | null;
   isOwner: boolean;
@@ -45,7 +47,9 @@ export function useCompany() {
             document,
             phone,
             plan,
-            trial_ends_at
+            trial_ends_at,
+            sector,
+            sector_features
           )
         `)
         .eq("user_id", user.id)
@@ -53,8 +57,14 @@ export function useCompany() {
 
       const role = membership?.role || null;
       
+      const company = membership?.companies ? {
+        ...membership.companies,
+        sector: membership.companies.sector as 'padaria' | 'mercadinho' | 'adega' | null,
+        sector_features: membership.companies.sector_features as string[] | null
+      } : null;
+      
       return {
-        company: membership?.companies || null,
+        company,
         role,
         isOwner: role === "OWNER",
         isStaff: role === "STAFF",

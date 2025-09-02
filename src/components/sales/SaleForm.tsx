@@ -241,16 +241,28 @@ export function SaleForm() {
             <CardHeader>
               <CardTitle className="text-base flex justify-between items-center">
                 Produtos
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowProductSearch(true)}
-                  className="gap-2"
-                >
-                  <Plus className="h-4 w-4" />
-                  Adicionar Produto
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowProductSearch(true)}
+                    className="gap-2"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Adicionar Produto
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowScanner(true)}
+                    className="gap-2"
+                  >
+                    <ScanLine className="h-4 w-4" />
+                    Scanner
+                  </Button>
+                </div>
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -462,6 +474,24 @@ export function SaleForm() {
             </Card>
           )}
         </form>
+
+        {/* Barcode Scanner */}
+        <BarcodeScanner
+          open={showScanner}
+          onOpenChange={setShowScanner}
+          onScanSuccess={(barcode) => {
+            const product = products?.find(p => p.code === barcode);
+            if (product) {
+              addProduct(product);
+            } else {
+              toast({
+                title: "Produto não encontrado",
+                description: `Código ${barcode} não foi encontrado no sistema.`,
+                variant: "destructive"
+              });
+            }
+          }}
+        />
       </DialogContent>
     </Dialog>
   );
