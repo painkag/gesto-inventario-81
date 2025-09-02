@@ -67,6 +67,7 @@ export type Database = {
           consent_timestamp: string | null
           consent_version: string | null
           created_at: string
+          current_period_end: string | null
           document: string | null
           fiscal_email: string | null
           id: string
@@ -75,6 +76,11 @@ export type Database = {
           phone: string | null
           plan: string
           state: string | null
+          stripe_customer_id: string | null
+          stripe_price_id_current: string | null
+          stripe_product_id_current: string | null
+          stripe_subscription_id: string | null
+          subscription_status: string
           trial_ends_at: string | null
           updated_at: string
         }
@@ -86,6 +92,7 @@ export type Database = {
           consent_timestamp?: string | null
           consent_version?: string | null
           created_at?: string
+          current_period_end?: string | null
           document?: string | null
           fiscal_email?: string | null
           id?: string
@@ -94,6 +101,11 @@ export type Database = {
           phone?: string | null
           plan?: string
           state?: string | null
+          stripe_customer_id?: string | null
+          stripe_price_id_current?: string | null
+          stripe_product_id_current?: string | null
+          stripe_subscription_id?: string | null
+          subscription_status?: string
           trial_ends_at?: string | null
           updated_at?: string
         }
@@ -105,6 +117,7 @@ export type Database = {
           consent_timestamp?: string | null
           consent_version?: string | null
           created_at?: string
+          current_period_end?: string | null
           document?: string | null
           fiscal_email?: string | null
           id?: string
@@ -113,6 +126,11 @@ export type Database = {
           phone?: string | null
           plan?: string
           state?: string | null
+          stripe_customer_id?: string | null
+          stripe_price_id_current?: string | null
+          stripe_product_id_current?: string | null
+          stripe_subscription_id?: string | null
+          subscription_status?: string
           trial_ends_at?: string | null
           updated_at?: string
         }
@@ -239,6 +257,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      processed_events: {
+        Row: {
+          event_account: string | null
+          event_created_at: string | null
+          event_id: string
+          event_type: string
+          last_error: string | null
+          processed: boolean
+          processed_at: string | null
+          received_at: string
+        }
+        Insert: {
+          event_account?: string | null
+          event_created_at?: string | null
+          event_id: string
+          event_type: string
+          last_error?: string | null
+          processed?: boolean
+          processed_at?: string | null
+          received_at?: string
+        }
+        Update: {
+          event_account?: string | null
+          event_created_at?: string | null
+          event_id?: string
+          event_type?: string
+          last_error?: string | null
+          processed?: boolean
+          processed_at?: string | null
+          received_at?: string
+        }
+        Relationships: []
       }
       products: {
         Row: {
