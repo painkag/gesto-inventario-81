@@ -165,14 +165,48 @@ export function useCheckout() {
       return data;
     },
     onSuccess: (data) => {
-      // Abrir checkout em nova aba para melhor UX
+      // Redirecionar diretamente para o Stripe Checkout
       if (data.checkout_url) {
-        window.open(data.checkout_url, '_blank');
+        window.location.href = data.checkout_url;
       }
     },
     onError: (error: any) => {
       toast({
         title: "Erro no checkout",
+        description: error.message || "Tente novamente em alguns instantes.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const openCustomerPortal = useMutation({
+    mutationFn: async () => {
+      console.log('[BILLING] Abrindo portal do cliente')
+
+      const { data, error } = await supabase.functions.invoke('customer-portal')
+
+      if (error) {
+        console.error('[BILLING] Erro na function customer-portal:', error)
+        throw new Error(error.message || 'Erro ao abrir portal')
+      }
+
+      if (!data.success) {
+        console.error('[BILLING] Portal falhou:', data.error)
+        throw new Error(data.error || 'Erro ao abrir portal')
+      }
+
+      console.log('[BILLING] Portal criado com sucesso:', data)
+      return data;
+    },
+    onSuccess: (data) => {
+      // Redirecionar para o portal do cliente
+      if (data.portal_url) {
+        window.location.href = data.portal_url;
+      }
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro no portal",
         description: error.message || "Tente novamente em alguns instantes.",
         variant: "destructive",
       });
@@ -213,8 +247,10 @@ export function useCheckout() {
 
   return {
     createCheckout,
+    openCustomerPortal,
     triggerWebhook,
     isCreatingCheckout: createCheckout.isPending,
+    isOpeningPortal: openCustomerPortal.isPending,
     isTriggeringWebhook: triggerWebhook.isPending,
   };
 }

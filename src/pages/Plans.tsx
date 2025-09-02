@@ -29,7 +29,7 @@ const Plans = () => {
     isLoading 
   } = useBilling();
   
-  const { createCheckout, triggerWebhook, isCreatingCheckout, isTriggeringWebhook } = useCheckout();
+  const { createCheckout, openCustomerPortal, triggerWebhook, isCreatingCheckout, isOpeningPortal, isTriggeringWebhook } = useCheckout();
   const [showDebug, setShowDebug] = useState(false);
 
   // Definir planos disponíveis
@@ -186,7 +186,7 @@ const Plans = () => {
             </div>
 
             {subscription?.status === "PAST_DUE" && (
-              <div className="mt-4">
+              <div className="mt-4 space-y-2">
                 <Button 
                   onClick={() => handleSubscribe(subscription.plan as "essential" | "professional")}
                   disabled={isCreatingCheckout}
@@ -195,6 +195,20 @@ const Plans = () => {
                 >
                   <CreditCard className="h-4 w-4" />
                   {isCreatingCheckout ? "Processando..." : "Pagar Agora"}
+                </Button>
+              </div>
+            )}
+
+            {subscription?.status === "ACTIVE" && (
+              <div className="mt-4">
+                <Button 
+                  onClick={() => openCustomerPortal.mutate()}
+                  disabled={isOpeningPortal}
+                  variant="outline"
+                  className="gap-2"
+                >
+                  <CreditCard className="h-4 w-4" />
+                  {isOpeningPortal ? "Carregando..." : "Gerenciar Assinatura"}
                 </Button>
               </div>
             )}
