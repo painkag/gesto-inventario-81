@@ -10,7 +10,11 @@ import {
   Settings,
   ChevronDown,
   Home,
-  CreditCard
+  CreditCard,
+  Tag,
+  ChefHat,
+  Factory,
+  LucideIcon
 } from "lucide-react";
 import {
   Sidebar,
@@ -19,7 +23,6 @@ import {
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarMenu,
-  SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
@@ -28,6 +31,22 @@ import { cn } from "@/lib/utils";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useCompany } from "@/hooks/useCompany";
 import { getSectorMenuItems } from "@/utils/sectorConfig";
+
+// Icon mapping for string-based icons
+const iconMap: Record<string, LucideIcon> = {
+  Package,
+  Archive,
+  ShoppingCart,
+  CreditCard,
+  Truck,
+  BarChart3,
+  FileText,
+  Tag,
+  ChefHat,
+  Factory,
+  Home,
+  Settings
+};
 
 const navigationItems = [
   {
@@ -38,46 +57,10 @@ const navigationItems = [
   }
 ];
 
-const managementItems = [
-  {
-    title: "Produtos",
-    url: "/dashboard/products",
-    icon: Package,
-  },
-  {
-    title: "Estoque",
-    url: "/dashboard/inventory", 
-    icon: Archive,
-  },
-  {
-    title: "Vendas",
-    url: "/dashboard/sales",
-    icon: ShoppingCart,
-  },
-  {
-    title: "Compras", 
-    url: "/dashboard/purchases",
-    icon: Truck,
-  }
-];
-
-const reportItems = [
-  {
-    title: "Relatórios",
-    url: "/dashboard/reports",
-    icon: BarChart3,
-  },
-  {
-    title: "Movimentações",
-    url: "/dashboard/movements",
-    icon: FileText,
-  }
-];
-
 export function DashboardSidebar() {
   const { state } = useSidebar();
   const location = useLocation();
-  const { canAccessSettings } = usePermissions(); // EM_EDIT: RBAC
+  const { canAccessSettings } = usePermissions();
   const { data: company } = useCompany();
   const [isManagementOpen, setIsManagementOpen] = useState(true);
   const [isReportsOpen, setIsReportsOpen] = useState(true);
@@ -89,9 +72,12 @@ export function DashboardSidebar() {
   const isActive = (path: string) => location.pathname === path;
   
   const getNavCls = (path: string) =>
-    isActive(path) 
-      ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium" 
-      : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground";
+    cn(
+      "flex items-center gap-2 px-2 py-1.5 text-sm rounded-md transition-colors w-full",
+      isActive(path) 
+        ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium" 
+        : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
+    );
 
   return (
     <Sidebar className={cn("border-r border-sidebar-border", isCollapsed ? "w-14" : "w-64")}>
@@ -105,12 +91,10 @@ export function DashboardSidebar() {
             <SidebarMenu>
               {navigationItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <NavLink to={item.url} className={getNavCls(item.url)}>
-                      <item.icon className="h-4 w-4" />
-                      {!isCollapsed && <span>{item.title}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
+                  <NavLink to={item.url} className={getNavCls(item.url)}>
+                    <item.icon className="h-4 w-4" />
+                    {!isCollapsed && <span>{item.title}</span>}
+                  </NavLink>
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>
@@ -134,16 +118,17 @@ export function DashboardSidebar() {
             <CollapsibleContent>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {managementItems.map((item) => (
-                    <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton asChild>
+                  {menuItems.management.map((item) => {
+                    const IconComponent = typeof item.icon === 'string' ? iconMap[item.icon] : item.icon;
+                    return (
+                      <SidebarMenuItem key={item.title}>
                         <NavLink to={item.url} className={getNavCls(item.url)}>
-                          <item.icon className="h-4 w-4" />
+                          {IconComponent && <IconComponent className="h-4 w-4" />}
                           {!isCollapsed && <span>{item.title}</span>}
                         </NavLink>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
+                      </SidebarMenuItem>
+                    );
+                  })}
                 </SidebarMenu>
               </SidebarGroupContent>
             </CollapsibleContent>
@@ -167,16 +152,17 @@ export function DashboardSidebar() {
             <CollapsibleContent>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {reportItems.map((item) => (
-                    <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton asChild>
+                  {menuItems.reports.map((item) => {
+                    const IconComponent = typeof item.icon === 'string' ? iconMap[item.icon] : item.icon;
+                    return (
+                      <SidebarMenuItem key={item.title}>
                         <NavLink to={item.url} className={getNavCls(item.url)}>
-                          <item.icon className="h-4 w-4" />
+                          {IconComponent && <IconComponent className="h-4 w-4" />}
                           {!isCollapsed && <span>{item.title}</span>}
                         </NavLink>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
+                      </SidebarMenuItem>
+                    );
+                  })}
                 </SidebarMenu>
               </SidebarGroupContent>
             </CollapsibleContent>
@@ -188,20 +174,16 @@ export function DashboardSidebar() {
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
-                    <NavLink to="/dashboard/settings" className={getNavCls("/dashboard/settings")}>
-                      <Settings className="h-4 w-4" />
-                      {!isCollapsed && <span>Configurações</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
+                  <NavLink to="/dashboard/settings" className={getNavCls("/dashboard/settings")}>
+                    <Settings className="h-4 w-4" />
+                    {!isCollapsed && <span>Configurações</span>}
+                  </NavLink>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
-                    <NavLink to="/dashboard/plano" className={getNavCls("/dashboard/plano")}>
-                      <CreditCard className="h-4 w-4" />
-                      {!isCollapsed && <span>Planos</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
+                  <NavLink to="/dashboard/plano" className={getNavCls("/dashboard/plano")}>
+                    <CreditCard className="h-4 w-4" />
+                    {!isCollapsed && <span>Planos</span>}
+                  </NavLink>
                 </SidebarMenuItem>
               </SidebarMenu>
             </SidebarGroupContent>
