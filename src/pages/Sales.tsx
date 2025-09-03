@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
+import { supabase } from "@/integrations/supabase/client";
 import { useCompany } from "@/hooks/useCompany";
 
 type Product = { id:string; name:string; code:string; selling_price:number; sell_by_weight?:boolean; };
@@ -17,7 +17,7 @@ export default function Sales(){
     (async()=>{
       if(!q){ setResults([]); return; }
       const { data } = await supabase.from("products")
-        .select("id,name,code,selling_price,sell_by_weight")
+        .select("id,name,code,selling_price")
         .ilike("name", `%${q}%`).limit(20);
       if(active) setResults(data||[]);
     })(); return ()=>{active=false};
