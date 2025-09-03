@@ -8,6 +8,9 @@ import { ErrorBoundary } from '@/providers/error-boundary'
 import { AuthProvider } from '@/hooks/useAuth'
 import { Toaster } from '@/components/ui/toaster'
 
+// Initialize auth store immediately
+import '@/lib/auth-store';
+
 createRoot(document.getElementById("root")!).render(
   <ErrorBoundary>
     <ThemeProvider defaultTheme="light" storageKey="estoque-theme">
