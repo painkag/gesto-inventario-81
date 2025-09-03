@@ -1,16 +1,13 @@
 import React from "react";
-import { AuthProvider } from "@/hooks/useAuth";
-import PDV from "./pages/PDV-vanilla";
+import PDV from "./pages/PDV-basic-hooks";
 
 const App = () => {
-  console.log('[APP] Loading vanilla PDV...');
+  console.log('[APP] Loading PDV with basic hooks...');
   
   return (
-    <AuthProvider>
-      <div className="min-h-screen">
-        <PDV />
-      </div>
-    </AuthProvider>
+    <div className="min-h-screen">
+      <PDV />
+    </div>
   );
 };
 
