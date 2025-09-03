@@ -16,6 +16,7 @@ import Settings from "@/pages/Settings";
 import Plans from "@/pages/Plans";
 import NotFound from "@/pages/NotFound";
 import Movements from "@/pages/Movements";
+import HelloHooks from "@/pages/__probe/HelloHooks";
 
 function App() {
   return (
@@ -38,6 +39,9 @@ function App() {
           <Route path="/dashboard/settings" element={<Settings />} />
           <Route path="/dashboard/plans" element={<Plans />} />
           <Route path="/dashboard/plano" element={<Plans />} />
+          
+          {/* Sanity check route */}
+          <Route path="/__probe" element={<HelloHooks />} />
           
           {/* Legacy routes without prefix for backward compatibility */}
           <Route path="/products" element={<Products />} />
