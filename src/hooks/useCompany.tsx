@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
-import { useState, useEffect } from "react";
+import { useState, useEffect } from '@/lib/react-safe';
 import type { Database } from "@/integrations/supabase/types";
 
 type UserRole = Database["public"]["Enums"]["user_role"];

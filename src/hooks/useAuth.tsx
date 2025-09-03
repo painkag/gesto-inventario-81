@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useEffect, ReactNode } from 'react';
+import { ReactNode } from 'react';
+import { React, createContext, useContext } from '@/lib/react-safe';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -96,10 +97,28 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 };
 
 export const useAuth = () => {
-  const context = React.useContext ? React.useContext(AuthContext) : null;
-  
-  if (!context) {
-    // Fallback se o contexto não estiver disponível
+  try {
+    const context = useContext(AuthContext);
+    
+    if (!context) {
+      // Fallback se o contexto não estiver disponível
+      return {
+        ...globalAuthState,
+        signOut: async () => {
+          try {
+            await supabase.auth.signOut({ scope: 'global' });
+            window.location.href = '/';
+          } catch (error) {
+            console.error('Erro ao fazer logout:', error);
+          }
+        }
+      };
+    }
+    
+    return context;
+  } catch (error) {
+    console.error('Error in useAuth:', error);
+    // Return safe fallback
     return {
       ...globalAuthState,
       signOut: async () => {
@@ -112,6 +131,4 @@ export const useAuth = () => {
       }
     };
   }
-  
-  return context;
 };

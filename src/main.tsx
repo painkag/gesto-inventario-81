@@ -5,6 +5,7 @@ import './index.css'
 import { ThemeProvider } from '@/providers/theme-provider'
 import { QueryProvider } from '@/providers/query-provider'
 import { ErrorBoundary } from '@/providers/error-boundary'
+import { AuthProvider } from '@/hooks/useAuth'
 import { Toaster } from '@/components/ui/toaster'
 import { Toaster as SonnerToaster } from '@/components/ui/sonner'
 
@@ -12,11 +13,13 @@ createRoot(document.getElementById("root")!).render(
   <ErrorBoundary>
     <ThemeProvider defaultTheme="light" storageKey="estoque-theme">
       <QueryProvider>
-        <BrowserRouter>
-          <App />
-          <Toaster />
-          <SonnerToaster />
-        </BrowserRouter>
+        <AuthProvider>
+          <BrowserRouter>
+            <App />
+            <Toaster />
+            <SonnerToaster />
+          </BrowserRouter>
+        </AuthProvider>
       </QueryProvider>
     </ThemeProvider>
   </ErrorBoundary>
