@@ -5,17 +5,19 @@ import type { Database } from "@/integrations/supabase/types";
 
 type UserRole = Database["public"]["Enums"]["user_role"];
 
+interface CompanyData {
+  id: string;
+  name: string;
+  document: string | null;
+  phone: string | null;
+  plan: string | null;
+  trial_ends_at: string | null;
+  sector: string | null;
+  sector_features: any[] | null;
+}
+
 interface CompanyWithRole {
-  company: {
-    id: string;
-    name: string;
-    document: string | null;
-    phone: string | null;
-    plan: string | null;
-    trial_ends_at: string | null;
-    sector: string | null;
-    sector_features: string[] | null;
-  } | null;
+  company: CompanyData | null;
   role: UserRole | null;
   isOwner: boolean;
   isStaff: boolean;
@@ -47,18 +49,16 @@ export function useCompany() {
             document,
             phone,
             plan,
-            trial_ends_at,
-            sector,
-            sector_features
+            trial_ends_at
           )
         `)
         .eq("user_id", user.id)
-        .single();
+        .maybeSingle();
 
       const role = membership?.role || null;
       
       return {
-        company: membership?.companies || null,
+        company: membership?.companies as CompanyData | null,
         role,
         isOwner: role === "OWNER",
         isStaff: role === "STAFF",
