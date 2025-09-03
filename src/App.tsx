@@ -9,7 +9,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import Products from "./pages/Products";
-import Inventory from "./pages/Inventory";
+import Inventory from "./pages/Inventory-simple";
 import Sales from "./pages/Sales";
 import Purchases from "./pages/Purchases";
 import Reports from "./pages/Reports";
