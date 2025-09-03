@@ -1,30 +1,22 @@
-import { useToast } from "@/hooks/use-toast";
-
+// Implementação temporária sem dependência do useToast
 export const useBlueToast = () => {
-  const { toast } = useToast();
-
   const showSuccess = (title: string, description?: string) => {
-    toast({
-      title,
-      description,
-      className: "bg-primary text-primary-foreground border-primary/20",
-    });
+    // Fallback simples usando alert até resolver o problema do React
+    console.log('SUCCESS:', title, description);
+    // Temporariamente usamos alert
+    alert(`✅ ${title}${description ? ': ' + description : ''}`);
   };
 
   const showError = (title: string, description?: string) => {
-    toast({
-      title,
-      description,
-      variant: "destructive",
-    });
+    console.error('ERROR:', title, description);
+    // Temporariamente usamos alert
+    alert(`❌ ${title}${description ? ': ' + description : ''}`);
   };
 
   const showInfo = (title: string, description?: string) => {
-    toast({
-      title,
-      description,
-      className: "bg-primary/10 text-primary border-primary/20",
-    });
+    console.log('INFO:', title, description);
+    // Temporariamente usamos alert
+    alert(`ℹ️ ${title}${description ? ': ' + description : ''}`);
   };
 
   return {
