@@ -8,7 +8,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useProducts } from '@/hooks/useProducts';
 import { useSales } from '@/hooks/useSales';
 import { useBlueToast } from '@/hooks/useBlueToast';
-import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import DashboardLayout from "@/components/layout/DashboardLayout";
 import { BarcodeScanner } from '@/components/scanner/BarcodeScanner';
 import { Search, ShoppingCart, Scan, Trash2, Plus, Minus } from 'lucide-react';
 

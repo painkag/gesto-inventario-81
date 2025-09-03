@@ -1,62 +1,26 @@
-import { Routes, Route } from "react-router-dom";
-import { ErrorBoundary } from "@/providers/error-boundary";
-
-// Import page components  
-import Index from "@/pages/Index";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Login from "@/pages/Login";
-import Register from "@/pages/Register";
 import Dashboard from "@/pages/Dashboard";
-import Products from "@/pages/Products";
-import Inventory from "@/pages/Inventory";
 import Sales from "@/pages/Sales";
-import Purchases from "@/pages/Purchases";
-import Reports from "@/pages/Reports";
-import PDV from "@/pages/PDV-basic-hooks";
-import Settings from "@/pages/Settings";
-import Plans from "@/pages/Plans";
-import NotFound from "@/pages/NotFound";
-import Movements from "@/pages/Movements";
-import HelloHooks from "@/pages/__probe/HelloHooks";
+import Inventory from "@/pages/Inventory";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import DashboardLayout from "@/components/layout/DashboardLayout";
 
-function App() {
+function App(){
   return (
-    <ErrorBoundary>
-      <div className="min-h-screen">
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          
-          {/* Dashboard routes with prefix */}
-          <Route path="/dashboard/products" element={<Products />} />
-          <Route path="/dashboard/inventory" element={<Inventory />} />
-          <Route path="/dashboard/sales" element={<Sales />} />
-          <Route path="/dashboard/purchases" element={<Purchases />} />
-          <Route path="/dashboard/reports" element={<Reports />} />
-          <Route path="/dashboard/movements" element={<Movements />} />
-          <Route path="/dashboard/pdv" element={<PDV />} />
-          <Route path="/dashboard/settings" element={<Settings />} />
-          <Route path="/dashboard/plans" element={<Plans />} />
-          <Route path="/dashboard/plano" element={<Plans />} />
-          
-          {/* Sanity check route */}
-          <Route path="/__probe" element={<HelloHooks />} />
-          
-          {/* Legacy routes without prefix for backward compatibility */}
-          <Route path="/products" element={<Products />} />
-          <Route path="/inventory" element={<Inventory />} />
-          <Route path="/sales" element={<Sales />} />
-          <Route path="/purchases" element={<Purchases />} />
-          <Route path="/reports" element={<Reports />} />
-          <Route path="/pdv" element={<PDV />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/plans" element={<Plans />} />
-          
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </div>
-    </ErrorBoundary>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Login/>} />
+        <Route path="/login" element={<Login/>} />
+        <Route element={<ProtectedRoute><DashboardLayout/></ProtectedRoute>}>
+          <Route path="/dashboard" element={<Dashboard/>} />
+          <Route path="/sales" element={<Sales/>} />
+          <Route path="/inventory" element={<Inventory/>} />
+        </Route>
+        <Route path="/__probe" element={<button>ok</button>} />
+        <Route path="*" element={<div style={{padding:24}}>404</div>} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 

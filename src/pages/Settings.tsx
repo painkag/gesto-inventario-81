@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CompanySettingsTab } from "@/components/settings/CompanySettingsTab";
 import { NFeSettingsTab } from "@/components/settings/NFeSettingsTab";

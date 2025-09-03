@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ProductForm } from "@/components/products/ProductForm";
