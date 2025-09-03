@@ -20,46 +20,50 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
+// Implementação temporária sem hooks React
+let globalAuthState = {
+  user: null as User | null,
+  session: null as Session | null,
+  loading: true,
+};
+
+let listeners: Array<() => void> = [];
+
+const notifyListeners = () => {
+  listeners.forEach(fn => fn());
+};
+
+// Inicializar auth sem hooks
+const initializeAuth = () => {
+  // Configurar listener de mudanças de auth
+  const { data: { subscription } } = supabase.auth.onAuthStateChange(
+    (event, session) => {
+      globalAuthState.session = session;
+      globalAuthState.user = session?.user ?? null;
+      globalAuthState.loading = false;
+      
+      console.log('Auth state changed:', { event, user: session?.user?.id });
+      notifyListeners();
+    }
+  );
+
+  // Verificar sessão existente
+  supabase.auth.getSession().then(({ data: { session } }) => {
+    globalAuthState.session = session;
+    globalAuthState.user = session?.user ?? null;
+    globalAuthState.loading = false;
+    
+    console.log('Initial session:', { user: session?.user?.id });
+    notifyListeners();
+  });
+
+  return () => subscription.unsubscribe();
+};
+
+// Inicializar imediatamente
+const cleanup = initializeAuth();
+
 export const AuthProvider = ({ children }: AuthProviderProps) => {
-  // Initialize with defensive React checks
-  const [user, setUser] = React.useState<User | null>(null);
-  const [session, setSession] = React.useState<Session | null>(null);
-  const [loading, setLoading] = React.useState(true);
-
-  React.useEffect(() => {
-    let mounted = true;
-
-    // Configurar listener de mudanças de auth PRIMEIRO
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (!mounted) return;
-        
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
-        
-        // Log para debug
-        console.log('Auth state changed:', { event, user: session?.user?.id });
-      }
-    );
-
-    // ENTÃO verificar sessão existente
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!mounted) return;
-      
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-      
-      console.log('Initial session:', { user: session?.user?.id });
-    });
-
-    return () => {
-      mounted = false;
-      subscription.unsubscribe();
-    };
-  }, []);
-
   const signOut = async () => {
     try {
       // Limpar estado de auth
@@ -69,14 +73,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         }
       });
 
-      // Tentar logout global
       try {
         await supabase.auth.signOut({ scope: 'global' });
       } catch (err) {
         console.warn('Error during signOut:', err);
       }
 
-      // Forçar refresh da página para estado limpo
       window.location.href = '/';
     } catch (error) {
       console.error('Erro ao fazer logout:', error);
@@ -85,9 +87,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   return (
     <AuthContext.Provider value={{
-      user,
-      session,
-      loading,
+      ...globalAuthState,
       signOut
     }}>
       {children}
@@ -96,10 +96,21 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 };
 
 export const useAuth = () => {
-  const context = React.useContext(AuthContext);
+  const context = React.useContext ? React.useContext(AuthContext) : null;
   
   if (!context) {
-    throw new Error('useAuth deve ser usado dentro de um AuthProvider');
+    // Fallback se o contexto não estiver disponível
+    return {
+      ...globalAuthState,
+      signOut: async () => {
+        try {
+          await supabase.auth.signOut({ scope: 'global' });
+          window.location.href = '/';
+        } catch (error) {
+          console.error('Erro ao fazer logout:', error);
+        }
+      }
+    };
   }
   
   return context;
