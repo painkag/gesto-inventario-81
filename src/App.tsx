@@ -1,9 +1,9 @@
 import React from "react";
 import { AuthProvider } from "@/hooks/useAuth";
-import PDV from "./pages/PDV-simple";
+import PDV from "./pages/PDV-vanilla";
 
 const App = () => {
-  console.log('[APP] React working, loading PDV...');
+  console.log('[APP] Loading vanilla PDV...');
   
   return (
     <AuthProvider>
