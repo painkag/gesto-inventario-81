@@ -25,7 +25,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [session, setSession] = React.useState<Session | null>(null);
   const [loading, setLoading] = React.useState(true);
 
-  useEffect(() => {
+  React.useEffect(() => {
     // Configurar listener de mudanças de auth PRIMEIRO
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
@@ -88,7 +88,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 };
 
 export const useAuth = () => {
-  const context = useContext(AuthContext);
+  const context = React.useContext(AuthContext);
   if (!context) {
     throw new Error('useAuth deve ser usado dentro de um AuthProvider');
   }
