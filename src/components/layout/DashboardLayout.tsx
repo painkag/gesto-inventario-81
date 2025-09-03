@@ -9,6 +9,8 @@ interface DashboardLayoutProps {
 }
 
 export function DashboardLayout({ children, title }: DashboardLayoutProps) {
+  console.log('[DASHBOARD_LAYOUT] Rendering with title:', title);
+  
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-background">
