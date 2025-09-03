@@ -29,81 +29,10 @@ const App = () => {
   
   return (
     <AuthProvider>
-      <BrowserRouter>
-          <SystemBlockedGuard>
-            <Routes>
-              {/* Public routes */}
-              <Route path="/" element={<Index />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              
-              {/* Protected dashboard routes */}
-              <Route path="/dashboard" element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              } />
-              <Route path="/dashboard/products" element={
-                <ProtectedRoute>
-                  <Products />
-                </ProtectedRoute>
-              } />
-              <Route path="/dashboard/inventory" element={
-                <ProtectedRoute>
-                  <Inventory />
-                </ProtectedRoute>
-              } />
-              <Route path="/dashboard/sales" element={
-                <ProtectedRoute>
-                  <Sales />
-                </ProtectedRoute>
-              } />
-              <Route path="/dashboard/pdv" element={
-                <ProtectedRoute>
-                  <PDV />
-                </ProtectedRoute>
-              } />
-              <Route path="/dashboard/purchases" element={
-                <ProtectedRoute>
-                  <Purchases />
-                </ProtectedRoute>
-              } />
-              <Route path="/dashboard/reports" element={
-                <ProtectedRoute>
-                  <Reports />
-                </ProtectedRoute>
-              } />
-              <Route path="/dashboard/movements" element={
-                <ProtectedRoute>
-                  <Movements />
-                </ProtectedRoute>
-              } />
-              <Route path="/dashboard/settings" element={
-                <ProtectedRoute>
-                  <RoleProtectedRoute requiredRole="OWNER">
-                    <Settings />
-                  </RoleProtectedRoute>
-                </ProtectedRoute>
-              } />
-              <Route path="/dashboard/plano" element={
-                <ProtectedRoute>
-                  <RoleProtectedRoute requiredRole="OWNER">
-                    <Plans />
-                  </RoleProtectedRoute>
-                </ProtectedRoute>
-              } />
-              
-              {/* Public checkout processing */}
-              <Route path="/checkout-processing" element={<CheckoutProcessing />} />
-              
-              {/* Catch-all route */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </SystemBlockedGuard>
-        </BrowserRouter>
-      <Toaster />
-      <Sonner />
+      <div>
+        <h1>App Loading Test</h1>
+        <p>If you can see this, React is working</p>
+      </div>
     </AuthProvider>
   );
 };
