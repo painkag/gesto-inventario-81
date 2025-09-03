@@ -11,7 +11,6 @@ export default defineConfig(({ mode }) => ({
   },
   plugins: [
     react({
-      // React configuration to prevent multiple instances
       jsxImportSource: "react",
     }),
     mode === 'development' && componentTagger(),
@@ -19,7 +18,7 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
-      // Force single React instance to prevent null/useState errors
+      // Force single React instance - critical for preventing null hook errors
       "react": path.resolve(__dirname, "./node_modules/react"),
       "react-dom": path.resolve(__dirname, "./node_modules/react-dom"),
       "react/jsx-runtime": path.resolve(__dirname, "./node_modules/react/jsx-runtime"),
@@ -27,11 +26,20 @@ export default defineConfig(({ mode }) => ({
     dedupe: ["react", "react-dom"],
   },
   define: {
-    // Prevent React DevTools issues
     __DEV__: mode === 'development',
   },
   optimizeDeps: {
     include: ["react", "react-dom"],
-    exclude: ["@radix-ui/react-toast"],
+    force: true, // Force re-optimization to ensure single React instance
+  },
+  build: {
+    rollupOptions: {
+      external: [],
+      output: {
+        manualChunks: {
+          react: ["react", "react-dom"],
+        },
+      },
+    },
   },
 }));

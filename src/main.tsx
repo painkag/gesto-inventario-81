@@ -7,7 +7,6 @@ import { QueryProvider } from '@/providers/query-provider'
 import { ErrorBoundary } from '@/providers/error-boundary'
 import { AuthProvider } from '@/hooks/useAuth'
 import { Toaster } from '@/components/ui/toaster'
-import { Toaster as SonnerToaster } from '@/components/ui/sonner'
 
 createRoot(document.getElementById("root")!).render(
   <ErrorBoundary>
@@ -17,7 +16,6 @@ createRoot(document.getElementById("root")!).render(
           <BrowserRouter>
             <App />
             <Toaster />
-            <SonnerToaster />
           </BrowserRouter>
         </AuthProvider>
       </QueryProvider>
