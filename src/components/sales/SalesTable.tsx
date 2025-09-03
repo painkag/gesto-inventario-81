@@ -1,6 +1,6 @@
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Eye, X, MoreHorizontal, FileText } from "lucide-react";
+import { Eye, X, MoreHorizontal } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -31,51 +31,14 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useSales } from "@/hooks/useSales";
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { useBlueToast } from "@/hooks/useBlueToast";
 
 export function SalesTable() {
   const { sales, cancelSale, isCancelling } = useSales();
   const [selectedSale, setSelectedSale] = useState<string | null>(null);
-  const { showSuccess, showError } = useBlueToast();
 
   const handleCancelSale = (saleId: string) => {
     cancelSale.mutate(saleId);
     setSelectedSale(null);
-  };
-
-  const handleGeneratePDF = async (saleId: string) => {
-    try {
-      const { data, error } = await supabase.functions.invoke('sale-receipt', {
-        body: { sale_id: saleId }
-      });
-
-      if (error) throw error;
-
-      // Convert base64 to blob and download
-      const byteCharacters = atob(data.pdf);
-      const byteNumbers = new Array(byteCharacters.length);
-      for (let i = 0; i < byteCharacters.length; i++) {
-        byteNumbers[i] = byteCharacters.charCodeAt(i);
-      }
-      const byteArray = new Uint8Array(byteNumbers);
-      const blob = new Blob([byteArray], { type: 'application/pdf' });
-
-      // Create download link
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `recibo-venda-${data.sale_number}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-
-      showSuccess("PDF gerado!", "Recibo da venda baixado com sucesso.");
-    } catch (error: any) {
-      console.error("Erro ao gerar PDF:", error);
-      showError("Erro ao gerar PDF", error.message || "Tente novamente.");
-    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -173,10 +136,6 @@ export function SalesTable() {
                     <DropdownMenuItem>
                       <Eye className="mr-2 h-4 w-4" />
                       Ver detalhes
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleGeneratePDF(sale.id)}>
-                      <FileText className="mr-2 h-4 w-4" />
-                      Recibo PDF
                     </DropdownMenuItem>
                     {sale.status === "COMPLETED" && (
                       <>
