@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { 
   Package, 
@@ -58,6 +58,11 @@ const navigationItems = [
 ];
 
 export function DashboardSidebar() {
+  // Early return if React is not available
+  if (!React || !React.useState) {
+    return null;
+  }
+
   const { state } = useSidebar();
   let location;
   let canAccessSettings = false;
