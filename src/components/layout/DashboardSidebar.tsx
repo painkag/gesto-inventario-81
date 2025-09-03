@@ -60,6 +60,8 @@ const navigationItems = [
 export function DashboardSidebar() {
   const { state } = useSidebar();
   let location;
+  let canAccessSettings = false;
+  let company = null;
   
   try {
     location = useLocation();
@@ -68,8 +70,22 @@ export function DashboardSidebar() {
     location = { pathname: '/dashboard' };
   }
   
-  const { canAccessSettings } = usePermissions();
-  const { data: company } = useCompany();
+  try {
+    const permissions = usePermissions();
+    canAccessSettings = permissions.canAccessSettings;
+  } catch (error) {
+    // Fallback if not in query context
+    canAccessSettings = false;
+  }
+  
+  try {
+    const { data } = useCompany();
+    company = data;
+  } catch (error) {
+    // Fallback if not in query context
+    company = null;
+  }
+  
   const [isManagementOpen, setIsManagementOpen] = useState(true);
   const [isReportsOpen, setIsReportsOpen] = useState(true);
 
