@@ -26,8 +26,16 @@ const RoleProtectedRoute = ({
   const { hasAccess, isOwner, isStaff } = usePermissions();
   const location = useLocation();
 
+  console.log('[ROLE_PROTECTED_ROUTE] State:', { 
+    user: !!user, 
+    authLoading, 
+    requiredRole, 
+    path: location.pathname 
+  });
+
   // Loading auth
   if (authLoading) {
+    console.log('[ROLE_PROTECTED_ROUTE] Auth still loading...');
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center space-y-4">
@@ -40,13 +48,17 @@ const RoleProtectedRoute = ({
 
   // Not authenticated
   if (!user) {
+    console.log('[ROLE_PROTECTED_ROUTE] No user, redirecting to login');
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
   // Check role permissions
   const canAccess = hasAccess(requiredRole);
+  console.log('[ROLE_PROTECTED_ROUTE] Access check:', { requiredRole, canAccess });
 
   if (!canAccess) {
+    console.log('[ROLE_PROTECTED_ROUTE] Access denied, redirecting to:', fallbackPath);
+    
     if (!showErrorPage) {
       return <Navigate to={fallbackPath} replace />;
     }
@@ -86,6 +98,7 @@ const RoleProtectedRoute = ({
     );
   }
 
+  console.log('[ROLE_PROTECTED_ROUTE] Access granted, rendering children');
   return <>{children}</>;
 };
 

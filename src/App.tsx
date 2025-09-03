@@ -110,6 +110,8 @@ const App: FC = () => {
               </Routes>
             </SystemBlockedGuard>
           </BrowserRouter>
+        <Toaster />
+        <Sonner />
       </AuthProvider>
     </QueryClientProvider>
   );

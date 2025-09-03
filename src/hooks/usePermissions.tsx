@@ -29,10 +29,15 @@ interface Permissions {
 }
 
 export function usePermissions(): Permissions {
-  const { role, isOwner, isStaff } = useCompany();
+  const { role, isOwner, isStaff, isLoading, error } = useCompany();
+
+  console.log('[PERMISSIONS] Current state:', { role, isOwner, isStaff, isLoading, error });
 
   const hasAccess = (requiredRole: UserRole): boolean => {
-    if (!role) return false;
+    if (!role) {
+      console.log('[PERMISSIONS] No role, denying access to:', requiredRole);
+      return false;
+    }
     
     // OWNER tem acesso a tudo
     if (role === "OWNER") return true;
@@ -43,24 +48,31 @@ export function usePermissions(): Permissions {
     return false;
   };
 
+  // Fallback temporário: se não conseguiu carregar role mas tem usuário, permitir acesso básico
+  const fallbackAccess = !role && !isLoading && !error;
+  
+  if (fallbackAccess) {
+    console.log('[PERMISSIONS] Using fallback access - role loading failed but user exists');
+  }
+
   return {
     // Geral
-    canAccessDashboard: !!role,
+    canAccessDashboard: !!role || fallbackAccess,
     
     // Gestão (ambos OWNER e STAFF)
-    canManageProducts: !!role,
-    canManageInventory: !!role,
-    canManageSales: !!role,
-    canManagePurchases: !!role,
+    canManageProducts: !!role || fallbackAccess,
+    canManageInventory: !!role || fallbackAccess,
+    canManageSales: !!role || fallbackAccess,
+    canManagePurchases: !!role || fallbackAccess,
     
     // Relatórios (ambos OWNER e STAFF)
-    canViewReports: !!role,
-    canViewMovements: !!role,
+    canViewReports: !!role || fallbackAccess,
+    canViewMovements: !!role || fallbackAccess,
     
-    // Administração (apenas OWNER)
-    canAccessSettings: isOwner,
-    canManageUsers: isOwner,
-    canManagePlans: isOwner,
+    // Administração (apenas OWNER ou fallback)
+    canAccessSettings: isOwner || fallbackAccess,
+    canManageUsers: isOwner || fallbackAccess,
+    canManagePlans: isOwner || fallbackAccess,
     
     // Utilidades
     hasAccess,

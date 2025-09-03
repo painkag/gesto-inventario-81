@@ -16,6 +16,12 @@ const SystemBlockedGuard = ({ children }: SystemBlockedGuardProps) => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
 
+  console.log('[SYSTEM_BLOCKED_GUARD] State:', { 
+    user: !!user, 
+    authLoading, 
+    path: location.pathname 
+  });
+
   // Rotas que podem ser acessadas sempre (sem verificação de billing)
   const publicRoutes = [
     '/',
@@ -42,14 +48,17 @@ const SystemBlockedGuard = ({ children }: SystemBlockedGuardProps) => {
 
   // Se for rota pública, sempre renderizar (sem verificação de billing)
   if (isPublicRoute) {
+    console.log('[SYSTEM_BLOCKED_GUARD] Public route, allowing access');
     return <>{children}</>;
   }
 
   // Só verificar billing para rotas do dashboard com usuário logado
   if (isDashboardRoute && user) {
+    console.log('[SYSTEM_BLOCKED_GUARD] Dashboard route with user, checking billing');
     return <DashboardGuard>{children}</DashboardGuard>;
   }
 
+  console.log('[SYSTEM_BLOCKED_GUARD] Other route, allowing access');
   // Para outras rotas, renderizar normalmente
   return <>{children}</>;
 };

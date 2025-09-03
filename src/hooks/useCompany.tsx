@@ -29,7 +29,10 @@ export function useCompany() {
   const query = useQuery({
     queryKey: ["company", user?.id],
     queryFn: async (): Promise<CompanyWithRole> => {
+      console.log('[COMPANY] Fetching company data for user:', user?.id);
+      
       if (!user?.id) {
+        console.log('[COMPANY] No user ID, returning null');
         return {
           company: null,
           role: null,
@@ -38,7 +41,7 @@ export function useCompany() {
         };
       }
       
-      const { data: membership } = await supabase
+      const { data: membership, error } = await supabase
         .from("memberships")
         .select(`
           company_id,
@@ -57,7 +60,14 @@ export function useCompany() {
         .eq("user_id", user.id)
         .maybeSingle();
 
+      if (error) {
+        console.error('[COMPANY] Error fetching membership:', error);
+      }
+
+      console.log('[COMPANY] Membership data:', membership);
+
       const role = membership?.role || null;
+      console.log('[COMPANY] User role:', role);
       
       return {
         company: membership?.companies as CompanyData | null,
