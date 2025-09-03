@@ -79,12 +79,6 @@ export function DashboardSidebar() {
   const location = useLocation();
   const { canAccessSettings } = usePermissions(); // EM_EDIT: RBAC
   const { data: company } = useCompany();
-  
-  console.log('[DASHBOARD_SIDEBAR] Permissions:', {
-    canAccessSettings,
-    company: company?.name,
-    pathname: location.pathname
-  });
   const [isManagementOpen, setIsManagementOpen] = useState(true);
   const [isReportsOpen, setIsReportsOpen] = useState(true);
 

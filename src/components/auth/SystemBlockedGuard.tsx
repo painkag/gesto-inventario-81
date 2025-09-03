@@ -60,15 +60,6 @@ const DashboardGuard = ({ children }: { children: ReactNode }) => {
   const location = useLocation();
   const navigate = useNavigate();
   
-  console.log('[DASHBOARD_GUARD] Status:', {
-    isLoading,
-    hasSystemAccess,
-    isActive,
-    isPastDue,
-    subscriptionData,
-    pathname: location.pathname
-  });
-  
   // Determinar se está bloqueado (sem acesso ao sistema)
   const isBlocked = !hasSystemAccess;
   const planDisplayName = subscriptionData?.plan 

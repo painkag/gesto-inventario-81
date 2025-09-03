@@ -20,6 +20,12 @@ export const getSectorMenuItems = (sector: string | null, sectorFeatures: string
       group: "management"
     },
     {
+      title: "PDV",
+      url: "/dashboard/pdv",
+      icon: "CreditCard", 
+      group: "management"
+    },
+    {
       title: "Compras",
       url: "/dashboard/purchases", 
       icon: "Truck",

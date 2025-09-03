@@ -17,6 +17,7 @@ import Dashboard from "./pages/Dashboard";
 import Products from "./pages/Products";
 import Inventory from "./pages/Inventory";
 import Sales from "./pages/Sales";
+import PDV from "./pages/PDV";
 import Purchases from "./pages/Purchases";
 import Reports from "./pages/Reports";
 import Movements from "./pages/Movements";
@@ -34,8 +35,6 @@ const queryClient = new QueryClient({
 });
 
 const App: FC = () => {
-  console.log('[APP] App component rendering');
-  
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
@@ -70,6 +69,11 @@ const App: FC = () => {
               <Route path="/dashboard/sales" element={
                 <ProtectedRoute>
                   <Sales />
+                </ProtectedRoute>
+              } />
+              <Route path="/dashboard/pdv" element={
+                <ProtectedRoute>
+                  <PDV />
                 </ProtectedRoute>
               } />
               <Route path="/dashboard/purchases" element={
