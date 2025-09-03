@@ -37,8 +37,6 @@ const App: FC = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <Toaster />
-        <Sonner />
         <BrowserRouter>
             <SystemBlockedGuard>
               <Routes>

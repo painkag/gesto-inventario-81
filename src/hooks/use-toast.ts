@@ -169,6 +169,7 @@ function toast({ ...props }: Toast) {
 }
 
 function useToast() {
+  // Safe React hooks usage
   const [state, setState] = React.useState<State>(memoryState)
 
   React.useEffect(() => {
