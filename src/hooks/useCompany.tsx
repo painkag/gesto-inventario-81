@@ -49,7 +49,9 @@ export function useCompany() {
             document,
             phone,
             plan,
-            trial_ends_at
+            trial_ends_at,
+            sector,
+            sector_features
           )
         `)
         .eq("user_id", user.id)

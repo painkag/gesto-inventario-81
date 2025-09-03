@@ -37,7 +37,7 @@ const OnboardingSelector = () => {
         .update({
           sector: sector.id,
           sector_features: sector.sector_features
-        } as any)
+        })
         .eq('id', membership.company_id);
 
       if (updateError) {
