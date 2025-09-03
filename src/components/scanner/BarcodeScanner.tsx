@@ -25,7 +25,7 @@ interface BarcodeScannerProps {
   isOpen: boolean;
 }
 
-export function BarcodeScanner({ onScan, onClose, isOpen }: BarcodeScannerProps) {
+function BarcodeScanner({ onScan, onClose, isOpen }: BarcodeScannerProps) {
   const [isScanning, setIsScanning] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastScan, setLastScan] = useState<string | null>(null);
@@ -299,3 +299,6 @@ export function BarcodeScanner({ onScan, onClose, isOpen }: BarcodeScannerProps)
     </div>
   );
 }
+
+export { BarcodeScanner };
+export default BarcodeScanner;
