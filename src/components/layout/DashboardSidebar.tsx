@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { 
   Package, 
@@ -58,15 +58,24 @@ const navigationItems = [
 ];
 
 export function DashboardSidebar() {
-  // State initialization
-  const [isManagementOpen, setIsManagementOpen] = useState(true);
-  const [isReportsOpen, setIsReportsOpen] = useState(true);
+  // Simple state using React.useState to avoid conflicts
+  const [isManagementOpen, setIsManagementOpen] = React.useState(true);
+  const [isReportsOpen, setIsReportsOpen] = React.useState(true);
 
-  // Hook usage with fallbacks
-  const { state: sidebarState = "expanded" } = useSidebar() || {};
+  // Get sidebar state with fallback
+  const sidebarContext = useSidebar();
+  const sidebarState = sidebarContext?.state || "expanded";
+
+  // Get location with fallback
   const location = useLocation();
-  const { canAccessSettings = false } = usePermissions() || {};
-  const { data: company = null } = useCompany() || {};
+  
+  // Get permissions with fallback
+  const permissions = usePermissions();
+  const canAccessSettings = permissions?.canAccessSettings || false;
+
+  // Get company data with fallback
+  const companyData = useCompany();
+  const company = companyData?.data || null;
 
   // Get dynamic menu items based on sector
   const menuItems = getSectorMenuItems(company?.sector, company?.sector_features);
