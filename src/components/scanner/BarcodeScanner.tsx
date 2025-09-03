@@ -20,12 +20,13 @@ declare global {
 }
 
 interface BarcodeScannerProps {
-  onScan: (code: string) => void;
-  onClose: () => void;
-  isOpen: boolean;
+  onScan?: (code: string) => void;
+  onBarcodeDetected?: (code: string) => void;
+  onClose?: () => void;
+  isOpen?: boolean;
 }
 
-export function BarcodeScanner({ onScan, onClose, isOpen }: BarcodeScannerProps) {
+export function BarcodeScanner({ onScan, onBarcodeDetected, onClose, isOpen = true }: BarcodeScannerProps) {
   const [isScanning, setIsScanning] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastScan, setLastScan] = useState<string | null>(null);
@@ -113,7 +114,9 @@ export function BarcodeScanner({ onScan, onClose, isOpen }: BarcodeScannerProps)
             const code = detectedCodes[0].rawValue;
             if (code && code !== lastScan) {
               setLastScan(code);
-              onScan(code);
+              // Call both callback patterns for flexibility
+              onScan?.(code);
+              onBarcodeDetected?.(code);
               // Brief pause after successful scan
               setTimeout(() => setLastScan(null), 2000);
             }
@@ -145,7 +148,7 @@ export function BarcodeScanner({ onScan, onClose, isOpen }: BarcodeScannerProps)
 
   const handleClose = () => {
     stopScanner();
-    onClose();
+    onClose?.();
   };
 
   if (!isOpen) return null;
@@ -273,7 +276,8 @@ export function BarcodeScanner({ onScan, onClose, isOpen }: BarcodeScannerProps)
                   if (e.key === 'Enter') {
                     const target = e.target as HTMLInputElement;
                     if (target.value.trim()) {
-                      onScan(target.value.trim());
+                      onScan?.(target.value.trim());
+                      onBarcodeDetected?.(target.value.trim());
                       target.value = '';
                     }
                   }
@@ -285,7 +289,8 @@ export function BarcodeScanner({ onScan, onClose, isOpen }: BarcodeScannerProps)
                 onClick={() => {
                   const input = document.querySelector('input[type="text"]') as HTMLInputElement;
                   if (input?.value.trim()) {
-                    onScan(input.value.trim());
+                    onScan?.(input.value.trim());
+                    onBarcodeDetected?.(input.value.trim());
                     input.value = '';
                   }
                 }}

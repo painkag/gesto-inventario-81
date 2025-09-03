@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useNavigate } from "react-router-dom";
-import { Plus, Minus, Search, ShoppingCart } from "lucide-react";
+import { Plus, Minus, Search, ShoppingCart, Scan } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -36,6 +36,8 @@ import { useProducts } from "@/hooks/useProducts";
 import { useSales } from "@/hooks/useSales";
 import { useInventory } from "@/hooks/useInventory";
 import { useBlueToast } from "@/hooks/useBlueToast";
+import { BarcodeScanner } from "@/components/scanner/BarcodeScanner";
+import { supabase } from "@/integrations/supabase/client";
 
 const saleSchema = z.object({
   customer_name: z.string().optional(),
@@ -59,6 +61,7 @@ export function SaleForm() {
   const [items, setItems] = useState<SaleItem[]>([]);
   const [productSearch, setProductSearch] = useState("");
   const [showProductSearch, setShowProductSearch] = useState(false);
+  const [showScanner, setShowScanner] = useState(false);
 
   const navigate = useNavigate();
   const { showSuccess, showError } = useBlueToast();
@@ -120,6 +123,19 @@ export function SaleForm() {
     setProductSearch("");
   };
 
+  const handleBarcodeDetected = (code: string) => {
+    console.log("Barcode detected:", code);
+    const product = products.find(p => p.code === code || p.short_code?.toString() === code);
+    
+    if (product) {
+      addProduct(product);
+      showSuccess("Produto encontrado!", `${product.name} adicionado ao carrinho`);
+      setShowScanner(false);
+    } else {
+      showError("Produto não encontrado", `Código ${code} não encontrado no sistema`);
+    }
+  };
+
   const updateQuantity = (productId: string, newQuantity: number) => {
     if (newQuantity <= 0) {
       setItems(items.filter((item) => item.product_id !== productId));
@@ -162,20 +178,29 @@ export function SaleForm() {
     if (items.length === 0) return;
 
     try {
-      const result = await createSale.mutateAsync({
-        ...data,
+      const saleData = {
+        customer_name: data.customer_name || "",
+        discount_amount: data.discount || 0,
+        notes: data.notes || "",
         items: items.map((item) => ({
           product_id: item.product_id,
           quantity: item.quantity,
           unit_price: item.unit_price,
         })),
+      };
+
+      // Use the Edge Function for sale finalization
+      const { data: result, error } = await supabase.functions.invoke('finalize-sale', {
+        body: saleData
       });
 
+      if (error) throw error;
+
       // Mostrar detalhes da venda após criação
-      if (result) {
+      if (result?.sale) {
         showSuccess(
           "Venda finalizada!",
-          `Venda ${result.sale_number} registrada com sucesso.`
+          `Venda ${result.sale.sale_number} registrada com sucesso.`
         );
       }
 
@@ -241,19 +266,47 @@ export function SaleForm() {
             <CardHeader>
               <CardTitle className="text-base flex justify-between items-center">
                 Produtos
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowProductSearch(true)}
-                  className="gap-2"
-                >
-                  <Plus className="h-4 w-4" />
-                  Adicionar Produto
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowScanner(true)}
+                    className="gap-2"
+                  >
+                    <Scan className="h-4 w-4" />
+                    Scanner
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowProductSearch(true)}
+                    className="gap-2"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Adicionar
+                  </Button>
+                </div>
               </CardTitle>
             </CardHeader>
             <CardContent>
+              {showScanner && (
+                <div className="mb-4 p-4 border rounded-lg bg-muted/50">
+                  <div className="flex justify-between items-center mb-3">
+                    <h4 className="font-medium">Scanner de Código de Barras</h4>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowScanner(false)}
+                    >
+                      Fechar
+                    </Button>
+                  </div>
+                  <BarcodeScanner onBarcodeDetected={handleBarcodeDetected} />
+                </div>
+              )}
               {showProductSearch && (
                 <div className="mb-4 p-4 border rounded-lg bg-muted/50">
                   <Command>

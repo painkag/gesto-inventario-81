@@ -24,6 +24,7 @@ import Settings from "./pages/Settings";
 import Plans from "./pages/Plans";
 import CheckoutProcessing from "./pages/CheckoutProcessing";
 import NotFound from "./pages/NotFound";
+import OnboardingSelector from "./pages/OnboardingSelector";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -47,11 +48,18 @@ const App = () => {
               <Routes>
               {/* Public routes */}
               <Route path="/" element={<Index />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              
-              {/* Protected dashboard routes */}
+               <Route path="/login" element={<Login />} />
+               <Route path="/register" element={<Register />} />
+               <Route path="/forgot-password" element={<ForgotPassword />} />
+               
+               {/* Onboarding route */}
+               <Route path="/onboarding" element={
+                 <ProtectedRoute>
+                   <OnboardingSelector />
+                 </ProtectedRoute>
+               } />
+               
+               {/* Protected dashboard routes */}
               <Route path="/dashboard" element={
                 <ProtectedRoute>
                   <Dashboard />
