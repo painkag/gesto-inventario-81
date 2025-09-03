@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { 
   Package, 
@@ -58,12 +58,16 @@ const navigationItems = [
 ];
 
 export function DashboardSidebar() {
-  // Early return if React is not available
-  if (!React || !React.useState) {
-    return null;
+  // Initialize sidebar state with proper error handling
+  let sidebarState = "expanded";
+  try {
+    const sidebar = useSidebar();
+    sidebarState = sidebar.state;
+  } catch (error) {
+    // Fallback if not in sidebar context
+    sidebarState = "expanded";
   }
 
-  const { state } = useSidebar();
   let location;
   let canAccessSettings = false;
   let company = null;
@@ -97,7 +101,7 @@ export function DashboardSidebar() {
   // Get dynamic menu items based on sector
   const menuItems = getSectorMenuItems(company?.sector, company?.sector_features);
 
-  const isCollapsed = state === "collapsed";
+  const isCollapsed = sidebarState === "collapsed";
   const isActive = (path: string) => location?.pathname === path;
   
   const getNavCls = (path: string) =>
