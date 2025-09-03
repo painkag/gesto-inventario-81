@@ -12,7 +12,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useCompany } from "@/hooks/useCompany";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { BarcodeScanner } from "@/components/scanner/BarcodeScanner";
+import BarcodeScanner from "@/components/scanner/BarcodeScanner";
 import { 
   Search, 
   ShoppingCart, 
