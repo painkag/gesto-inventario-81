@@ -1,4 +1,4 @@
-import { React } from "@/lib/react-safe"
+import * as React from "react"
 
 const MOBILE_BREAKPOINT = 768
 

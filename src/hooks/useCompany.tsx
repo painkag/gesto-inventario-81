@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
-import { useState, useEffect } from '@/lib/react-safe';
+import * as React from 'react';
 import type { Database } from "@/integrations/supabase/types";
 
 type UserRole = Database["public"]["Enums"]["user_role"];
@@ -25,12 +25,12 @@ interface CompanyWithRole {
 
 export function useCompany() {
   const { user } = useAuth();
-  const [data, setData] = useState<CompanyData | null>(null);
-  const [role, setRole] = useState<UserRole | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+  const [data, setData] = React.useState<CompanyData | null>(null);
+  const [role, setRole] = React.useState<UserRole | null>(null);
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [error, setError] = React.useState<Error | null>(null);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (!user?.id) {
       console.log('[COMPANY] No user ID, setting defaults');
       setData(null);

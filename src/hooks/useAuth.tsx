@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { getAuthState, subscribeToAuth, signOut } from '@/lib/auth-store';
-import { useState, useEffect } from '@/lib/react-safe';
+import * as React from 'react';
 
 interface AuthContextType {
   user: User | null;
@@ -22,9 +22,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 // Safe hook that uses global state instead of Context
 export const useAuth = (): AuthContextType => {
   try {
-    const [authState, setAuthState] = useState(getAuthState());
+    const [authState, setAuthState] = React.useState(getAuthState());
 
-    useEffect(() => {
+    React.useEffect(() => {
       // Subscribe to auth changes
       const unsubscribe = subscribeToAuth(() => {
         setAuthState(getAuthState());
