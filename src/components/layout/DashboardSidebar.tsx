@@ -59,7 +59,15 @@ const navigationItems = [
 
 export function DashboardSidebar() {
   const { state } = useSidebar();
-  const location = useLocation();
+  let location;
+  
+  try {
+    location = useLocation();
+  } catch (error) {
+    // Fallback if not in router context
+    location = { pathname: '/dashboard' };
+  }
+  
   const { canAccessSettings } = usePermissions();
   const { data: company } = useCompany();
   const [isManagementOpen, setIsManagementOpen] = useState(true);
@@ -69,7 +77,7 @@ export function DashboardSidebar() {
   const menuItems = getSectorMenuItems(company?.sector, company?.sector_features);
 
   const isCollapsed = state === "collapsed";
-  const isActive = (path: string) => location.pathname === path;
+  const isActive = (path: string) => location?.pathname === path;
   
   const getNavCls = (path: string) =>
     cn(
