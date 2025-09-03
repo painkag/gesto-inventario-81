@@ -26,6 +26,8 @@ import {
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
 import { usePermissions } from "@/hooks/usePermissions";
+import { useCompany } from "@/hooks/useCompany";
+import { getSectorMenuItems } from "@/utils/sectorConfig";
 
 const navigationItems = [
   {
@@ -76,8 +78,12 @@ export function DashboardSidebar() {
   const { state } = useSidebar();
   const location = useLocation();
   const { canAccessSettings } = usePermissions(); // EM_EDIT: RBAC
+  const { data: company } = useCompany();
   const [isManagementOpen, setIsManagementOpen] = useState(true);
   const [isReportsOpen, setIsReportsOpen] = useState(true);
+
+  // Get dynamic menu items based on sector
+  const menuItems = getSectorMenuItems(company?.sector, company?.sector_features);
 
   const isCollapsed = state === "collapsed";
   const isActive = (path: string) => location.pathname === path;

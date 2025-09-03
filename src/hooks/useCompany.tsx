@@ -13,6 +13,8 @@ interface CompanyWithRole {
     phone: string | null;
     plan: string | null;
     trial_ends_at: string | null;
+    sector: string | null;
+    sector_features: string[] | null;
   } | null;
   role: UserRole | null;
   isOwner: boolean;
@@ -45,7 +47,9 @@ export function useCompany() {
             document,
             phone,
             plan,
-            trial_ends_at
+            trial_ends_at,
+            sector,
+            sector_features
           )
         `)
         .eq("user_id", user.id)
